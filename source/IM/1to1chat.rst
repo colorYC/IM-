@@ -26,37 +26,6 @@ SDK 下载
 导入 SDK
 -------------------------
 
-SDK 有两种导入方式：CocoaPods 导入和手动导入。
-
-
-CocoaPods 导入
->>>>>>>>>>>>>>>>>>>>>>>>>>
-
-SDK 支持使用 CocoaPods 导入并管理 SDK。 需安装 CocoaPods 环境，请参照 `CocoaPods 安装 <https://cocoapods.org/>`_ 。
-
-CocoaPods 环境配置好后，按下面的步骤导入 SDK
-
-1. cd 至项目根目录
-
-2. 执行 pod init
-
-3. 执行 open -e Podfile
-
-4. 在 Podfile 文件中添加下面内容
-::
-
-    pod 'JphoonSDK', '~> 1.20.0'
-
-1.20.0 为当前最新版本，如需指定具体版本，请注意 `pod 使用规范 <https://guides.cocoapods.org/using/the-podfile.html>`_  。
-
-5. 执行 pod install
-
-6. 双击打开 .xcworkspace 即可
-
-
-手动导入
->>>>>>>>>>>>>>>>>>>>>>>>>>
-
 您可以在工程中使用静态库或者动态库，此处介绍使用静态库的配置方法。如果想使用动态库，请参考动态库的配置说明文档 :ref:`iOS 导入动态库<iOS 导入动态库>` 。
 
 .. note::
@@ -1293,6 +1262,7 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 发送文本消息
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+文本消息包括文字、Emoji、地理位置消息以及 @ 消息，上层可通过 contentType 参数定义消息类型
 ::
 
     [JCMessageWrapper sendText:JCMessageChannelType1To1 serverUid:@"会话服务器 id" contentType:@"Text" content:@"文本内容" extraParams:nil atAll:false atServerUidList:nil];
@@ -1339,6 +1309,8 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 发送文件消息
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+文件消息包括文件、图片、视频、语音消息。均通过 sendFile 方法发送，并通过 contentType 参数进行不同消息类型的标识。具体如下
+
 ::
 
     //发送图片
@@ -1349,6 +1321,7 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 
     //发送音频
     [JCMessageWrapper sendFile:JCMessageChannelType1To1 serverUid:@"会话服务器 id" contentType:@"Audio" filePath:@"文件路径" thumbPath:nil size:size duration:seconds extraParams:nil expiredSeconds:expiredSeconds atAll:true atServerUidList:nil];
+
 
 输入参数介绍：
 
@@ -1453,6 +1426,7 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 消息重发
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+调用下面的方法进行消息重发，只针对发送失败消息的情况，会删除原先消息并重新生成一条
 ::
 
     // 重发消息，只针对发送失败消息，会删除原先消息并重新生成一条
@@ -1473,6 +1447,8 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 
 消息转发
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+消息转发分为单条转发和合并转发。
 
 - 单条转发
 
@@ -1587,6 +1563,7 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 消息撤回
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+调用下面的方法撤回已发送成功的消息
 ::
 
     [JCMessageWrapper withdrawalMessage:JCMessageChannelType1To1 serverUid:@" 会话服务器 id" dbMessageId:dbMessageId usingBlock:^(bool, int, NSObject * _Nullable) {
@@ -1718,9 +1695,12 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 
 - 更新消息状态
 
+消息状态包括消息发送的状态、收到消息、已读以及撤回。更新消息状态调用下面的接口
+
 ::
 
-    [JCCloudDatabase updateMessageState:messageId state:JCMessageChannelItemStateOK];
+    //更新消息状态为已收到消息
+    [JCCloudDatabase updateMessageState:messageId state:JCMessageChannelItemStateRecveived];
 
 
 输入参数介绍：
@@ -1738,7 +1718,9 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
      - JCMessageChannelItemState
      - 消息状态
 
+
 其中，JCMessageChannelItemState 请参考 API reference 中的 JCMessageChannelConstants 类。
+
 
 - 更新文件路径
 
@@ -1766,6 +1748,11 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 将会话中的所有消息置为已读
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+开发者可使用此功能将消息标为已读和未读状态。
+
+例如，当 A 向 B 发送了一条消息，B 在未阅读之前，A 用户显示此消息未读，当 B 用户阅读并调用发送标为已读接口之后，A 用户可在相关回调中收到通知，此时可根据对应的数据内容将发送的消息显示为已读。
+
+将一个会话的所有消息置为已读接口如下
 ::
 
     // 将该会话所有消息置为已读，并按照内部逻辑设置服务器已读
@@ -1843,15 +1830,16 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
      - 结果函数，成功则 block 的 obj 为 JCServerConversationData 列表
 
 
-向上拉取消息
+拉取历史消息
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-向上拉取消息是以某一条消息 Id 为起始向上拉去一定条数的消息，当 dbMessageId 为 -1 时表示从最新一条开始拉取
+拉取历史消息是以某一条消息 Id 为起始向上拉去一定条数的消息，当 dbMessageId 为 -1 时表示从最新一条开始拉取
 ::
 
     [JCMessageWrapper fetchMessages:@"会话服务器id" dbMessageId:dbMessageId count:5 usingBlock:^(bool, int, NSObject * _Nullable) {
         NSLog(@"拉取消息");
     }];
+
 
 输入参数介绍：
 
@@ -1877,6 +1865,8 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 
 文件消息下载
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+当收到文件消息时需要调用下面的接口下载文件
 
 - 下载文件
 ::
@@ -2205,142 +2195,6 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
      - 说明
    * - NSArray<JCConversationMessageData*>
      - 会话消息列表
-
-
-
-
-联系人管理
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-
-保存服务器联系人
-+++++++++++++++++++++++++++
-
-::
-
-    [JCCloudDatabase dealServerContact:contact];
-
-输入参数介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - contact
-     - JCAccountContact
-     - JCAccountContact 对象
-
-其中， JCAccountContact 有以下属性::
-
-    @property (nonatomic, copy) NSString *serverUid;
-
-    @property (nonatomic) JCAccountContactType type;
-
-    @property (nonatomic, copy) NSString *displayName;
-
-    @property (nonatomic, copy) NSString *tag;
-
-    @property (nonatomic) bool dnd;
-
-    @property (nonatomic) JCAccountContactChangeState changeType;
-
-JCAccountContactChangeState 有以下状态::
-
-    /// 新增
-    JCAccountContactChangeStateAdd = 0,
-    /// 更新
-    JCAccountContactChangeStateUpdate,
-    /// 删除
-    JCAccountContactChangeStateRemove,
-
-
-查询本地保存的服务器联系人
-+++++++++++++++++++++++++++
-
-::
-
-    JCServerContactData *contactData = [JCCloudDatabase queryServerContact:serverUid];
-
-
-输入参数介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - serverUid
-     - NSString
-     -  服务器的会话 id
-
-返回值介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 返回值类型
-     - 说明
-   * - JCServerContactData
-     - JCServerContactData 对象
-
-其中，JCServerContactData(服务器联系人数据) 有以下属性::
-
-    /// server uid
-    @property (nonatomic, strong) NSString* server_uid;
-    /// 类型
-    @property (nonatomic) JCAccountContactType type;
-    /// 昵称
-    @property (nonatomic, strong) NSString* display_name;
-    /// tag
-    @property (nonatomic, strong) NSDictionary* tag;
-    /// 免打扰
-    @property (nonatomic) bool dnd;
-    /// user_id
-    @property (nonatomic, strong) NSString* user_id;
-
-查询本地保存的服务器联系人列表
-+++++++++++++++++++++++++++
-
-::
-
-    NSArray<JCServerContactData*> *contactDataAry = [JCCloudDatabase queryServerContacts];
-
-返回值介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 返回值类型
-     - 说明
-   * - NSArray<JCServerContactData*>
-     - JCServerContactData 对象列表
-
-刷新服务器联系人
-+++++++++++++++++++++++++++
-
-调用 JCCloudManager 类中的 refreshContacts 方法刷新服务器联系人
-
-::
-
-    [JCCloudManager.shared refreshContacts:^(bool, int, NSObject * _Nullable) {
-        NSLog(@"刷新服务器联系人");
-    }];
-
-
-输入参数介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - block
-     - CloudOperationBlock
-     - 结果函数
 
 
 拨打音视频电话

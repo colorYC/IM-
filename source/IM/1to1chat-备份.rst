@@ -2505,7 +2505,7 @@ JCAccountContactChangeState 有以下状态::
     @property (nonatomic, strong) NSString* user_id;
 
 查询本地保存的服务器联系人列表
-+++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++
 
 ::
 

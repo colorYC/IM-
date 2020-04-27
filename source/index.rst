@@ -12,7 +12,7 @@
    :maxdepth: 6
 
    简介<overview>
-   原理及流程<workflow>
+   ServerUid 说明<serveruid>
    集成开发<IM/index>
    下载<demo/index>
    API 参考<APIreference>

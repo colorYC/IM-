@@ -26,37 +26,6 @@ SDK 下载
 导入 SDK
 -------------------------
 
-SDK 有两种导入方式：CocoaPods 导入和手动导入。
-
-
-CocoaPods 导入
->>>>>>>>>>>>>>>>>>>>>>>>>>
-
-SDK 支持使用 CocoaPods 导入并管理 SDK。 需安装 CocoaPods 环境，请参照 `CocoaPods 安装 <https://cocoapods.org/>`_ 。
-
-CocoaPods 环境配置好后，按下面的步骤导入 SDK
-
-1. cd 至项目根目录
-
-2. 执行 pod init
-
-3. 执行 open -e Podfile
-
-4. 在 Podfile 文件中添加下面内容
-::
-
-    pod 'JphoonSDK', '~> 1.20.0'
-
-1.20.0 为当前最新版本，如需指定具体版本，请注意 `pod 使用规范 <https://guides.cocoapods.org/using/the-podfile.html>`_  。
-
-5. 执行 pod install
-
-6. 双击打开 .xcworkspace 即可
-
-
-手动导入
->>>>>>>>>>>>>>>>>>>>>>>>>>
-
 您可以在工程中使用静态库或者动态库，此处介绍使用静态库的配置方法。如果想使用动态库，请参考动态库的配置说明文档 :ref:`iOS 导入动态库<iOS 导入动态库>` 。
 
 .. note::
@@ -482,6 +451,7 @@ CocoaPods 环境配置好后，按下面的步骤导入 SDK
     /// 其他错误
     JCClientReasonOther = 100,
 
+
 登录成功之后，SDK 会自动保持与服务器的连接状态，直到用户主动调用登出接口，或者因为帐号在其他设备登录导致该设备被登出。
 
 
@@ -733,7 +703,7 @@ JCGroupMember 对象的详细信息请参考 API reference。
 更新群组
 ++++++++++++++++++++++++++++++
 
-更新群组包括增删成员、设置成员的角色、修改群相关属性，如名称等、上传头像、拉取群消息等。
+更新群组包括增删成员、设置成员的角色、修改群相关属性，如群名称等、上传头像、拉取群消息等。
 
 添加成员
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -768,6 +738,27 @@ JCGroupMember 对象的详细信息请参考 API reference。
      - GroupOperationBlock
      - 结果函数
 
+**相关回调**
+
+添加群成员会触发 onGroupMemberAdd 回调
+::
+
+    -(void)onGroupMemberAdd:(JCGroupMemberData*)member {
+        NSLog(@"添加群成员");
+    }
+
+
+参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - member
+     - JCGroupMemberData
+     - JCGroupMemberData 对象
 
 踢掉人员
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -800,7 +791,7 @@ JCGroupMember 对象的详细信息请参考 API reference。
      - GroupOperationBlock
      - 结果函数
 
-相关回调
+**相关回调**
 
 删除群成员会触发 onGroupMemberDelete 回调
 ::
@@ -913,6 +904,29 @@ JCGroupMember 对象的详细信息请参考 API reference。
      - 结果函数
 
 
+**相关回调**
+
+设置群成员角色会触发 onGroupMemberUpdate（群成员更新）回调
+::
+
+    -(void)onGroupMemberUpdate:(JCGroupMemberData*)member {
+        NSLog(@"群成员更新");
+    }
+
+
+参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - member
+     - JCGroupMemberData
+     - JCGroupMemberData 对象
+
+
 修改自己的群昵称
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -981,14 +995,12 @@ JCGroupMember 对象的详细信息请参考 API reference。
 调用下面的方法更新群备注
 ::
 
-/**
- * @brief 群备注更新
- * @param groupServerUid 群 ServerUid
- * @param nickName 群备注名
- * @param tag 标签，内部会将该 NSDictionary 转为 json
- * @param block 结果函数
- */
-+(void)updateComment:(NSString* __nonnull)groupServerUid nickName:(NSString* __nullable)nickName tag:(NSDictionary<NSString*, NSObject*>* __nullable)tag usingBlock:(GroupOperationBlock)block;
+    NSDictionary<NSString*, NSObject*> *tag = [NSDictionary dictionary];
+    [tag setObject:@"object" forKey:@"key"];
+    [JCGroupWrapper updateComment:@" 群 ServerUid" nickName:@"群备注名" tag:tag usingBlock:^(bool, int, NSObject * _Nullable) {
+        NSLog(@"群备注更新");
+    }];
+
 
 输入参数介绍：
 
@@ -998,18 +1010,15 @@ JCGroupMember 对象的详细信息请参考 API reference。
    * - 参数
      - 类型
      - 说明
-   * - members
-     - NSArray<JCGroupMember*>
-     - 成员列表，uid, memberType 和 displayname 需要赋值
-   * - groupName
+   * - groupServerUid
      - NSString
-     - 群名字
-   * - type
-     - JCGroupType
-     - 群类型
-   * - customProperties
+     - 群 ServerUid
+   * - nickName
+     - NSString
+     - 群备注名
+   * - tag
      - NSDictionary<NSString*, NSObject*>
-     - 群自定义属性
+     - 标签，内部会将该 NSDictionary 转为 json
    * - block
      - GroupOperationBlock
      - 结果函数
@@ -1021,13 +1030,11 @@ JCGroupMember 对象的详细信息请参考 API reference。
 调用下面的方法更改群名称
 ::
 
-/**
- * @brief 更改群名称
- * @param groupServerUid 群 ServerUid
- * @param groupName 群名字
- * @param block 结果函数
- */
-+(void)changeGroupName:(NSString* __nonnull)groupServerUid groupName:(NSString* __nonnull)groupName usingBlock:(GroupOperationBlock)block;
+
+    [JCGroupWrapper changeGroupName:@" 群 ServerUid" groupName:@"群名字" usingBlock:^(bool, int, NSObject * _Nullable) {
+        NSLog(@"更改群名称");
+    }];
+
 
 输入参数介绍：
 
@@ -1037,47 +1044,27 @@ JCGroupMember 对象的详细信息请参考 API reference。
    * - 参数
      - 类型
      - 说明
-   * - members
-     - NSArray<JCGroupMember*>
-     - 成员列表，uid, memberType 和 displayname 需要赋值
+   * - groupServerUid
+     - NSString
+     - 群 ServerUid
    * - groupName
      - NSString
      - 群名字
-   * - type
-     - JCGroupType
-     - 群类型
-   * - customProperties
-     - NSDictionary<NSString*, NSObject*>
-     - 群自定义属性
    * - block
      - GroupOperationBlock
      - 结果函数
 
+
 上传群头像
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-调用下面的方法上传群头像
+调用下面的方法上传群头像，最终是群的 customProperties 会增加 "Icon"（JCGroupIconPropertyKey 在 JCCloudConstants.h 中） 字段，存的是服务器文件链接
 ::
 
-/**
- * @brief 上传群头像，最终是群的 customProperties 会增加 "Icon"（JCGroupIconPropertyKey 在 JCCloudConstants.h 中） 字段，存的是服务器文件链接
- * @param path 头像文件路径
- * @param block 结果函数，block 的 obj 为 groupServerUid
- */
-+(void)updateGroupIcon:(NSString* __nonnull)groupServerUid path:(NSString*)path usingBlock:(GroupOperationBlock)block;
+    [JCGroupWrapper updateGroupIcon:@" 群 ServerUid" path:@"头像文件路径" usingBlock:^(bool, int, NSObject * _Nullable) {
+        NSLog(@"上传群头像");
+    }];
 
-拉取群消息
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-调用下面的方法拉取群消息
-::
-
-
-/**
- *  @brief 更新群信息
- *  @param block 结果函数
- */
-+(void)refreshGroupInfo:(NSString* __nonnull)groupServerId usingBlock:(GroupOperationBlock)block;
 
 输入参数介绍：
 
@@ -1087,18 +1074,39 @@ JCGroupMember 对象的详细信息请参考 API reference。
    * - 参数
      - 类型
      - 说明
-   * - members
-     - NSArray<JCGroupMember*>
-     - 成员列表，uid, memberType 和 displayname 需要赋值
-   * - groupName
+   * - groupServerUid
      - NSString
-     - 群名字
-   * - type
-     - JCGroupType
-     - 群类型
-   * - customProperties
-     - NSDictionary<NSString*, NSObject*>
-     - 群自定义属性
+     - 群 ServerUid
+   * - path
+     - NSString
+     - 头像文件路径
+   * - block
+     - GroupOperationBlock
+     - 结果函数
+
+
+更新群信息
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+调用下面的方法更新群信息
+::
+
+    [JCGroupWrapper refreshGroupInfo:@" 群 ServerUid" usingBlock:^(bool, int, NSObject * _Nullable) {
+        NSLog(@"更新群信息");
+    }];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - groupServerId
+     - NSString
+     - 群 serverUid
    * - block
      - GroupOperationBlock
      - 结果函数
@@ -1110,26 +1118,10 @@ JCGroupMember 对象的详细信息请参考 API reference。
 调用下面的方法拉取服务器更新
 ::
 
+    [JCGroupWrapper refreshGroups:^(bool, int, NSObject * _Nullable) {
+        NSLog(@"拉取服务器更新");
+    }];
 
-/**
- *  @brief 拉取服务器更新
- *  @param block 结果函数
- */
-+(void)refreshGroups:(GroupOperationBlock)block;
-
-
-离开群组
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-调用下面的方法离开群组
-::
-
-/**
- * @brief 离开，群主必须转移群主后才能离开
- * @param groupServerUid 群 ServerUid
- * @param block 结果函数
- */
-+(void)leave:(NSString* __nonnull)groupServerUid usingBlock:(GroupOperationBlock)block;
 
 输入参数介绍：
 
@@ -1139,21 +1131,61 @@ JCGroupMember 对象的详细信息请参考 API reference。
    * - 参数
      - 类型
      - 说明
-   * - members
-     - NSArray<JCGroupMember*>
-     - 成员列表，uid, memberType 和 displayname 需要赋值
-   * - groupName
-     - NSString
-     - 群名字
-   * - type
-     - JCGroupType
-     - 群类型
-   * - customProperties
-     - NSDictionary<NSString*, NSObject*>
-     - 群自定义属性
    * - block
      - GroupOperationBlock
      - 结果函数
+
+
+离开群组
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+调用下面的方法离开群组，**群主必须转移群主后才能离开**
+:
+
+    [JCGroupWrapper leave:@"群 ServerUid" usingBlock:^(bool, int, NSObject * _Nullable) {
+        NSLog(@"离开群组");
+    }];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - groupServerUid
+     - NSString
+     - 群 ServerUid
+   * - block
+     - GroupOperationBlock
+     - 结果函数
+
+
+相关回调
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+更新群会触发 onGroupUpdate 回调
+::
+
+
+    -(void)onGroupUpdate:(JCGroupData*)group {
+        NSLog(@"更新群");
+    }
+
+
+参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - group
+     - JCGroupData
+     - JCGroupData 对象
 
 
 查询群组
@@ -1162,35 +1194,13 @@ JCGroupMember 对象的详细信息请参考 API reference。
 查询所有群组
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-调用下面的方法查询群
+调用下面的方法查询所有群组
 ::
 
-/**
- *  @brief   查询所有群组
- *  @return 群组列表
- */
-+(NSArray<JCGroupData*>*)queryGroups;
+    NSArray<JCGroupData*>* groupAry = [JCCloudDatabase queryGroups];
 
-输入参数介绍：
+其中，JCGroupData 为群组对象，详细信息请参考 API reference。
 
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - type
-     - JCConversationType
-     - 会话类型，一对一和群聊
-   * - serverUid
-     - NSString
-     - 服务器会话 uid，一对一实际是对方的个人 uid，群组 id 要创建成功才能获得
-   * - name
-     - NSString
-     - 会话名字，只针对一对一会话有效
-   * - lastActiveTime
-     - long
-     - 最后活跃时间,  <=0 则按当前时间
 
 返回值介绍：
 
@@ -1199,20 +1209,17 @@ JCGroupMember 对象的详细信息请参考 API reference。
 
    * - 返回值类型
      - 说明
-   * - long
-     - 会话id，没有返回 -1
+   * - NSArray<JCGroupData*>
+     - 群组列表
 
 
 查询单个群组
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+调用下面的方法查询单个群组
+::
 
-/**
- *  @brief   查询群
- *  @param  serverUid 群服务器 uid
- *  @return 群组对象
- */
-+(JCGroupData*)queryGroup:(NSString* __nonnull)serverUid;
+    JCGroupData * groupData = [JCCloudDatabase queryGroup:@"群服务器 uid"];
 
 
 输入参数介绍：
@@ -1223,18 +1230,10 @@ JCGroupMember 对象的详细信息请参考 API reference。
    * - 参数
      - 类型
      - 说明
-   * - type
-     - JCConversationType
-     - 会话类型，一对一和群聊
    * - serverUid
      - NSString
-     - 服务器会话 uid，一对一实际是对方的个人 uid，群组 id 要创建成功才能获得
-   * - name
-     - NSString
-     - 会话名字，只针对一对一会话有效
-   * - lastActiveTime
-     - long
-     - 最后活跃时间,  <=0 则按当前时间
+     - 服务器会话 uid
+
 
 返回值介绍：
 
@@ -1243,19 +1242,17 @@ JCGroupMember 对象的详细信息请参考 API reference。
 
    * - 返回值类型
      - 说明
-   * - long
-     - 会话id，没有返回 -1
+   * - JCGroupData
+     - 群组对象
 
 
 查询群成员列表
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-/**
- *  @brief   查询群成员列表
- *  @param  serverUid 群服务器 uid
- *  @return 成员列表
- */
-+(NSArray<JCGroupMemberData*>*)queryGroupMembers:(NSString* __nonnull)groupServerUid;
+调用下面的方法群成员列表
+::
+
+    NSArray<JCGroupMemberData*> * groupMemberData = [JCCloudDatabase queryGroupMembers:@"群服务器 uid"];
 
 
 输入参数介绍：
@@ -1266,18 +1263,10 @@ JCGroupMember 对象的详细信息请参考 API reference。
    * - 参数
      - 类型
      - 说明
-   * - type
-     - JCConversationType
-     - 会话类型，一对一和群聊
    * - serverUid
      - NSString
-     - 服务器会话 uid，一对一实际是对方的个人 uid，群组 id 要创建成功才能获得
-   * - name
-     - NSString
-     - 会话名字，只针对一对一会话有效
-   * - lastActiveTime
-     - long
-     - 最后活跃时间,  <=0 则按当前时间
+     - 群服务器 uid
+
 
 返回值介绍：
 
@@ -1286,20 +1275,19 @@ JCGroupMember 对象的详细信息请参考 API reference。
 
    * - 返回值类型
      - 说明
-   * - long
-     - 会话id，没有返回 -1
+   * - NSArray<JCGroupMemberData*>
+     - 成员列表
+
+其中，JCGroupMemberData 为群成员信息，详细信息请参考 API reference。
 
 
 查询单个成员
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-/**
- *  @brief   查询单个成员
- *  @param  serverUid 群服务器 uid
- *  @param  memberServerUid 成员ServerUid
- *  @return 成员对象
- */
-+(JCGroupMemberData*)queryGroupMember:(NSString* __nonnull)serverUid memberServerUid:(NSString* __nonnull)memberServerUid;
+调用下面的方法查询单个成员
+::
+
+    JCGroupMemberData * groupMemberData = [JCCloudDatabase queryGroupMember:@"群服务器 uid" memberServerUid:@"成员ServerUid"];
 
 
 输入参数介绍：
@@ -1310,18 +1298,13 @@ JCGroupMember 对象的详细信息请参考 API reference。
    * - 参数
      - 类型
      - 说明
-   * - type
-     - JCConversationType
-     - 会话类型，一对一和群聊
    * - serverUid
      - NSString
-     - 服务器会话 uid，一对一实际是对方的个人 uid，群组 id 要创建成功才能获得
-   * - name
+     - 服务器会话 uid
+   * - memberServerUid
      - NSString
-     - 会话名字，只针对一对一会话有效
-   * - lastActiveTime
-     - long
-     - 最后活跃时间,  <=0 则按当前时间
+     - 成员ServerUid
+
 
 返回值介绍：
 
@@ -1330,19 +1313,19 @@ JCGroupMember 对象的详细信息请参考 API reference。
 
    * - 返回值类型
      - 说明
-   * - long
-     - 会话id，没有返回 -1
+   * - JCGroupMemberData
+     - 群成员对象
 
 
 查询创建的群
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-/**
- *  @brief  查询创建的群
- *  @param  memberSeverUid 创建者 serverUid
- *  @return 群列表
- */
-+(NSArray<JCGroupData*>*)queryOwnedGroups:(NSString* __nonnull)memberSeverUid;
+调用下面的方法查询创建的群
+
+::
+
+    NSArray<JCGroupData*> * groupData = [JCCloudDatabase queryOwnedGroups:@"创建者 serverUid"];
+
 
 输入参数介绍：
 
@@ -1352,18 +1335,10 @@ JCGroupMember 对象的详细信息请参考 API reference。
    * - 参数
      - 类型
      - 说明
-   * - type
-     - JCConversationType
-     - 会话类型，一对一和群聊
-   * - serverUid
+   * - memberSeverUid
      - NSString
-     - 服务器会话 uid，一对一实际是对方的个人 uid，群组 id 要创建成功才能获得
-   * - name
-     - NSString
-     - 会话名字，只针对一对一会话有效
-   * - lastActiveTime
-     - long
-     - 最后活跃时间,  <=0 则按当前时间
+     - 创建者 serverUid
+
 
 返回值介绍：
 
@@ -1372,18 +1347,18 @@ JCGroupMember 对象的详细信息请参考 API reference。
 
    * - 返回值类型
      - 说明
-   * - long
-     - 会话id，没有返回 -1
+   * - NSArray<JCGroupData*>
+     - 群列表
+
 
 查询加入的群
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-/**
- *  @brief  查询加入的群
- *  @param  memberSeverUid 创建者 serverUid
- *  @return 群列表
- */
-+(NSArray<JCGroupData*>*)queryJoinedGroups:(NSString* __nonnull)memberSeverUid;
+调用下面的方法查询加入的群
+
+::
+
+    NSArray<JCGroupData*> * groupData = [JCCloudDatabase queryJoinedGroups:@"创建者 serverUid"];
 
 
 输入参数介绍：
@@ -1394,18 +1369,10 @@ JCGroupMember 对象的详细信息请参考 API reference。
    * - 参数
      - 类型
      - 说明
-   * - type
-     - JCConversationType
-     - 会话类型，一对一和群聊
-   * - serverUid
+   * - memberSeverUid
      - NSString
-     - 服务器会话 uid，一对一实际是对方的个人 uid，群组 id 要创建成功才能获得
-   * - name
-     - NSString
-     - 会话名字，只针对一对一会话有效
-   * - lastActiveTime
-     - long
-     - 最后活跃时间,  <=0 则按当前时间
+     - 创建者 serverUid
+
 
 返回值介绍：
 
@@ -1414,19 +1381,19 @@ JCGroupMember 对象的详细信息请参考 API reference。
 
    * - 返回值类型
      - 说明
-   * - long
-     - 会话id，没有返回 -1
+   * - NSArray<JCGroupData*>
+     - 群列表
 
 
 搜索包括关键字的群
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-/**
- * @brief 搜索包括关键字的群（群名，群别名，群成员），没有匹配成员则 JCGroupSearchData 的 member 为空
- * @param key 搜索关键字
- * @param includNickName 是否包含搜索群的 nickName
- */
-+(NSArray<JCGroupSearchData*>*)searchGroup:(NSString* __nonnull)key includNickName:(bool)includNickName;
+调用下面的方法搜索包括关键字的群
+
+::
+
+    //搜索包括关键字的群（群名，群别名，群成员），没有匹配成员则 JCGroupSearchData 的 member 为空
+    NSArray<JCGroupSearchData*> * groupSearchData = [JCCloudDatabase searchGroup:@"搜索关键字" includNickName:false];
 
 
 输入参数介绍：
@@ -1437,18 +1404,12 @@ JCGroupMember 对象的详细信息请参考 API reference。
    * - 参数
      - 类型
      - 说明
-   * - type
-     - JCConversationType
-     - 会话类型，一对一和群聊
-   * - serverUid
+   * - key
      - NSString
-     - 服务器会话 uid，一对一实际是对方的个人 uid，群组 id 要创建成功才能获得
-   * - name
-     - NSString
-     - 会话名字，只针对一对一会话有效
-   * - lastActiveTime
-     - long
-     - 最后活跃时间,  <=0 则按当前时间
+     - 搜索关键字
+   * - includNickName
+     - bool
+     - 是否包含搜索群的 nickName
 
 返回值介绍：
 
@@ -1457,30 +1418,17 @@ JCGroupMember 对象的详细信息请参考 API reference。
 
    * - 返回值类型
      - 说明
-   * - long
-     - 会话id，没有返回 -1
+   * - NSArray<JCGroupSearchData*>
+     - 群搜索数据列表
 
-*解散群组*
+其中，JCGroupSearchData 有下面的属性
+::
 
-*加入群组*
+    /// 群
+    @property (nonatomic, strong) JCGroupData* group;
+    /// 成员列表
+    @property (nonatomic, strong) JCGroupMemberData* member;
 
-*退出群组*
-
-*群组成员查询*
-
-*刷新群组信息*
-
-*同步用户群组*
-
-*增删群成员*
-
-*修改群名称*
-
-*设置群昵称*
-
-*设置群头像*
-
-*群公告设置*
 
 群聊会话管理
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1526,16 +1474,256 @@ JCMessageWrapper.h
 
 *发送@消息*
 
-JCMessageFetchManager.h
+
+会话管理
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+会话管理主要涉及 JCCloudDatabase 类中的方法，JCCloudDatabase 是数据库管理类，用于会话的增删改查。
+
+数据库操作要在同一线程中，可以通过调用 JCCloudManager 类中的异步调用方法实现数据库的异步操作
+
+异步操作数据库
++++++++++++++++++++++++++++
+::
+
+    [JCCloudManager.shared dispatchIm:^{
+       //数据库操作
+    }];
+
+    [JCCloudManager.shared dispatchImDelay:^{
+        //数据库操作
+    } delay:1000];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - block
+     - void(^)(void)
+     - block线程
+   * - millisecond
+     - int
+     - 延迟执行时间
+
+
+打开/关闭数据库
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+调用下面的方法打开数据库
+::
+
+    bool ret = [JCCloudDatabase open:JCCloudManager.shared.client.userId];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - name
+     - NSString
+     - 用户userId
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - bool
+     - 方法是否调用成功
+
+
+调用下面的方法关闭数据库
+::
+
+    [JCCloudDatabase close];
+
+创建会话
++++++++++++++++++++++++++++
+
+发起群聊，首先会根据传入的 serverUid 查询本地数据库有无此会话，没有则会自动创建
+::
+
+    long conversationId = [JCCloudDatabase getConversation:@"服务器会话 uid"];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - serverUid
+     - NSString
+     - 服务器会话 uid，一对一实际是对方的个人 uid，群组 id 要创建成功才能获得
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - long
+     - 会话id，没有返回 -1
+
+创建会话有两种方式：
+
+- 以当前时间创建
+
+::
+
+    long conversationId = [JCCloudDatabase getOrCreateConversation:JCConversationTypeGroup serverUid:@"服务器会话 uid" name:@"会话名字"];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - type
+     - JCConversationType
+     - 会话类型，一对一和群聊
+   * - serverUid
+     - NSString
+     - 服务器会话 uid，一对一实际是对方的个人 uid，群组 id 要创建成功才能获得
+   * - name
+     - NSString
+     - 会话名字，只针对一对一会话有效
+
+其中，JCConversationType 有下面两种::
+
+    /// 一对一
+    JCConversationType1To1 = JCMessageChannelType1To1,
+    /// 群组
+    JCConversationTypeGroup = JCMessageChannelTypeGroup,
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - long
+     - 会话id，没有返回 -1
+
+
+- 通过自定义活跃时间创建，会话排序会根据传入的 activeTime 排列，开发者可根据需求是否需传入会话排序。
+
+::
+
+    long conversationId = [JCCloudDatabase getOrCreateConversation:JCConversationTypeGroup serverUid:@"服务器会话 uid" name:@"会话名字" lastActiveTime:lastActiveTime];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - type
+     - JCConversationType
+     - 会话类型，一对一和群聊
+   * - serverUid
+     - NSString
+     - 服务器会话 uid，一对一实际是对方的个人 uid，群组 id 要创建成功才能获得
+   * - name
+     - NSString
+     - 会话名字，只针对一对一会话有效
+   * - lastActiveTime
+     - long
+     - 最后活跃时间,  <=0 则按当前时间
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - long
+     - 会话id，没有返回 -1
+
+**相关回调**
+
+创建会话会收到 onConversationAdd（新增会话） 回调
+::
+    
+    -(void)onConversationAdd:(long)conversationId {
+        NSLog(@"收到新增会话回调，conversationId %ld", conversationId);
+    }
+
+
+参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话数据库 id
+
+
+删除会话
++++++++++++++++++++++++++++
+
+删除单个会话
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+通过传入本地会话 id 删除会话
+::
+
+    [JCCloudDatabase deleteConversation:@"本地会话 id"];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话数据库 id
+
+删除所有会话
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    [JCCloudDatabase deleteAllConversations];
+
 
 相关回调
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-更新群会触发 onGroupUpdate 回调
+删除会话会触发 onConversationDelete 回调
+
 ::
-
-
-    -(void)onGroupUpdate:(JCGroupData*)group {
-        NSLog(@"更新群");
+    
+    -(void)onConversationDelete:(long)conversationId {
+        NSLog(@"删除会话回调，conversationId %ld", conversationId);
     }
 
 
@@ -1547,15 +1735,249 @@ JCMessageFetchManager.h
    * - 参数
      - 类型
      - 说明
-   * - group
-     - JCGroupData
-     - JCGroupData 对象
+   * - conversationId
+     - long
+     - 会话数据库 id
 
-添加群成员会触发 onGroupMemberAdd 回调
+
+更新会话
++++++++++++++++++++++++++++
+
+更新会话信息
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 ::
 
-    -(void)onGroupMemberAdd:(JCGroupMemberData*)member {
-        NSLog(@"添加群成员");
+    [JCCloudDatabase updateConversation:@"旧的JCConversationData对象"];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - oldConversationData
+     - JCConversationData
+     - 旧的会话
+
+
+更新会话名字
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    [JCCloudDatabase updateConversationNameIfNeed:@"会话服务器id" name:@"会话名称"];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - serverUid
+     - NSString
+     - 会话服务器id
+   * - serverUid
+     - NSString
+     - 服务器会话 uid，一对一实际是对方的个人 uid，群组 id 要创建成功才能获得
+   * - name
+     - NSString
+     - 会话名字，只针对一对一会话有效
+
+
+更新会话图标
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    [JCCloudDatabase updateConversationIconIfNeed:@"服务器会话 uid" icon:@"会话图标"];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - serverUid
+     - NSString
+     - 服务器会话 uid
+   * - icon
+     - NSString
+     - 会话图标
+
+
+保存草稿
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    [JCCloudDatabase saveDraft:conversationId content:@"文本内容" contentType:@"text" filePath:@"文件路径"];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话数据库id
+   * - content
+     - NSString
+     - 文本内容
+   * - contentType
+     - NSString
+     - 类型
+   * - filePath
+     - NSString
+     - 文件路径
+
+清除草稿
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+     [JCCloudDatabase clearDraft:conversationId];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话数据库id
+
+
+设置会话所有消息本地已读
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+在会话界面中调用下面的方法将会话所有消息标为本地已读
+::
+
+    [JCCloudDatabase markConversationRead:conversationId];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 本地会话 id
+
+
+参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话数据库 id
+
+
+设置会话置顶
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+在会话界面中调用 JCCloudManager 类中的 setConversationPriority 方法设置会话置顶
+::
+
+    [JCCloudManager.shared setConversationPriority:conversationId isPriority:true usingBlock:^(bool, int, NSObject * _Nullable) {
+        NSLog(@"设置优先级")
+    }
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 本地会话 id
+   * - isPriority
+     - bool
+     - 是否置顶
+   * - block
+     - CloudOperationBlock
+     - 结果函数
+
+
+参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话数据库 id
+
+
+会话免打扰
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+在会话界面中调用 JCCloudManager 类中的 setConversationDnd 方法设置会话免打扰
+::
+
+    [JCCloudManager.shared setConversationDnd:conversationId dnd:true usingBlock:^(bool, int, NSObject * _Nullable) {
+        NSLog(@"设置会话免打扰")
+    }
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话 id
+   * - dnd
+     - bool
+     - 是否免打扰
+   * - block
+     - CloudOperationBlock
+     - 结果函数
+
+
+相关回调
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+更新会话会触发 onConversationUpdate（会话更新）的回调
+
+::
+
+    -(void)onConversationUpdate:(long)conversationId {
+        NSLog(@"会话:%ld 更新", conversationId);
     }
 
 
@@ -1567,15 +1989,483 @@ JCMessageFetchManager.h
    * - 参数
      - 类型
      - 说明
-   * - member
-     - JCGroupMemberData
-     - JCGroupMemberData 对象
+   * - conversationId
+     - long
+     - 会话数据库 id
 
-群成员更新会触发 onGroupMemberUpdate 回调
+
+查询会话
++++++++++++++++++++++++++++
+
+查询所有会话
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+登录成功之后，开发者可以调用下面接口获取 SDK 在本地数据库生成的会话列表，获取到的会话列表按照时间倒序排列，置顶会话会排在最前。
 ::
 
-    -(void)onGroupMemberUpdate:(JCGroupMemberData*)member {
-        NSLog(@"群成员更新");
+    NSArray<JCConversationData*>* conversationsData = [JCCloudDatabase queryConversations];
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - JCConversationData 对象数组
+     - 返回数据库中所有的会话
+
+JCConversationData 对象原型请参考 API reference 中的 JCCloudDatabase 类。
+
+查询单个会话
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+查询单个会话有两种方式，开发者可以根据需求选择调用
+
+- 通过会话 id 查询单个会话
+
+::
+
+    JCConversationData* data = [JCCloudDatabase queryConversation:@"会话id"];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话id
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - JCConversationData
+     - 会话对象
+
+- 通过 ServerUid 查询会话
+
+::
+
+    JCConversationData* data = [JCCloudDatabase queryConversationByServerUid:@"服务器会话 uid"];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - serverUid
+     - NSString
+     - 服务器会话 uid
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - JCConversationData
+     - 会话对象
+
+获得本地会话 id
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- 根据 serverUid 获得本地会话 id
+
+::
+
+    long conversationId = [JCCloudDatabase getConversation:@"serverUid"];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - serverUid
+     - NSString
+     - 服务器会话 uid，一对一实际是对方的个人 uid，群组 id 要创建成功才能获得
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - long
+     - 会话id，没有返回 -1
+
+
+- 根据消息服务器 id 获得本地会话 id
+
+::
+
+    long conversationId = [JCCloudDatabase getConversationByServerMessageId:serverMessageId];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - serverMessageId
+     - long
+     - 消息服务器 id
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - long
+     - 本地会话 id
+
+
+获得所有的未读消息数
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    [JCCloudDatabase getToltalUnreadMessageCount:false];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - includeDndConversation
+     - bool
+     - 是否包含免打扰会话
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - long
+     - 所有的未读消息数
+
+
+消息管理
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+消息介绍
++++++++++++++++++++++++++++
+
+SDK 中用于表示消息的对象为 JCConversationMessageData。它是 IM 即时通讯中最关键最重要的类，是传递信息的基本模型。
+
+JCConversationMessageData 对象包含消息id、会话id、发送消息的userId等属性，详见 API reference 中的  JCCloudDatabase 类。
+
+消息支持的类型有：文字、文件、图片、表情、位置、语音消息、小视频。
+
+
+发送/转发/回复消息
++++++++++++++++++++++++++++
+
+发送文本消息
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+文本消息包括文字、Emoji、地理位置消息以及 @ 消息，上层可通过 contentType 参数定义消息类型
+::
+
+    [JCMessageWrapper sendText:JCMessageChannelType1To1 serverUid:@"会话服务器 id" contentType:@"Text" content:@"文本内容" extraParams:nil atAll:false atServerUidList:nil];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - type
+     - JCMessageChannelType
+     - 消息所属会话类型
+   * - serverUid
+     - NSString
+     - 话服务器 id，一对一必须先获得对方 userId 的 serverUid，群聊必须先获得群的 serverUid
+   * - contentType
+     - NSString
+     - 消息类型
+   * - content
+     - NSString
+     - 消息内容
+   * - extra
+     - NSDictionary<NSString*, NSObject*>
+     - 额外信息
+   * - atAll
+     - bool
+     - 是否@全体成员，针对群消息
+   * - atServerUidList
+     - NSArray<NSString*>
+     - @成员的serverUid列表 针对群消息
+
+其中，JCMessageChannelType（消息类型）有::
+
+    /// 一对一消息
+    JCMessageChannelType1To1,
+    /// 群组消息
+    JCMessageChannelTypeGroup,
+
+
+发送文件消息
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+文件消息包括文件、图片、视频、语音消息。均通过 sendFile 方法发送，并通过 contentType 参数进行不同消息类型的标识。具体如下
+
+::
+
+    //发送图片
+    [JCMessageWrapper sendFile:JCMessageChannelType1To1 serverUid:@"会话服务器 id" contentType:@"Image" filePath:@"文件路径" thumbPath:@"缩略图路径" size:size duration:0 extraParams:@{"width":"oringinImage.size.width","height":"oringinImage.size.height"} expiredSeconds:expiredSeconds atAll:true atServerUidList:nil];
+
+    //发送视频
+    [JCMessageWrapper sendFile:JCMessageChannelType1To1 serverUid:@"会话服务器 id" contentType:@"Video" filePath:@"文件路径" thumbPath:@"缩略图路径" size:size duration:seconds extraParams:@{"width":"thumbImage.size.width","height":"thumbImage.size.height"} expiredSeconds:expiredSeconds atAll:true atServerUidList:nil];
+
+    //发送音频
+    [JCMessageWrapper sendFile:JCMessageChannelType1To1 serverUid:@"会话服务器 id" contentType:@"Audio" filePath:@"文件路径" thumbPath:nil size:size duration:seconds extraParams:nil expiredSeconds:expiredSeconds atAll:true atServerUidList:nil];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - type
+     - JCMessageChannelType
+     - 消息所属会话类型
+   * - serverUid
+     - NSString
+     - 话服务器 id，一对一必须先获得对方 userId 的 serverUid，群聊必须先获得群的 serverUid
+   * - contentType
+     - NSString
+     - 消息类型
+   * - filePath
+     - NSString
+     - 文件本地路径
+   * - thumbPath
+     - NSString
+     - 缩略图本地路径
+   * - size
+     - int
+     - 文件大小
+   * - duration
+     - int
+     - 文件时长
+   * - extraParams
+     - NSDictionary<NSString*, NSObject*>
+     - 额外信息
+   * - expiredSeconds
+     - int
+     - 过期秒数，-1表示永久
+   * - atAll
+     - bool
+     - 是否@全体成员，针对群消息
+   * - atServerUidList
+     - NSArray<NSString*>
+     - @成员的serverUid列表 针对群消息
+
+
+发送文件接口调用后会触发 onPreDealFileTransfer 回调，该回调返回 true 表示上层要要对该文件进行处理，处理完需要调用 JCMessageWrapper 类中的 setPreDealFile 方法设置处理后的文件，返回 false 则表示内部继续处理
+::
+
+    // 预处理文件发送
+    -(bool)onPreDealFileTransfer:(JCConversationMessageData* __nonnull)message;
+
+
+参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - message
+     - JCConversationMessageData
+     - 消息对象
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - bool
+     - true 表示上层要要对该文件进行处理，处理完需要调用 JCMessageWrapper.setPreDealFile，false 则内部继续处理
+
+设置处理完的文件
+::
+
+    [JCMessageWrapper setPreDealFile:messageId result:true  dealedFilePath:@"处理后的文件路径" dealedFileSize:size];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - messageId
+     - long
+     - 数据库消息 id
+   * - result
+     - bool
+     - 处理结果
+   * - dealedFilePath
+     - NSString
+     - 处理后的文件路径
+   * - dealedFileSize
+     - int
+     - 处理后的文件大小
+
+
+消息重发
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+调用下面的方法进行消息重发，只针对发送失败消息的情况，会删除原先消息并重新生成一条
+::
+
+    // 重发消息，只针对发送失败消息，会删除原先消息并重新生成一条
+    [JCMessageWrapper resendMessage:messageId];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - messageId
+     - long
+     - 数据库消息 id
+
+
+消息转发
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+消息转发分为单条转发和合并转发。
+
+- 单条转发
+
+::
+
+    //转发消息，有文件url和文本消息都可以转发
+    [JCMessageWrapper forwordMessage:messageIds serverUids:serverUids];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - messageIds
+     - NSArray<NSNumber*>
+     - 数据库消息 id 列表
+   * - serverUids
+     - NSArray
+     - 会话 serverUid 列表
+
+
+- 合并转发
+
+::
+
+    //合并转发消息，有文件url和文本消息都可以转发
+    [JCMessageWrapper mergeForwordMessage:messageIds serverUids:serverUids title:@"标题"];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - messageIds
+     - NSArray<NSNumber*>
+     - 数据库消息 id 列表
+   * - serverUids
+     - NSArray
+     - 会话 serverUid 列表
+   * - title
+     - NSString
+     - 标题
+
+
+消息回复
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    [JCMessageWrapper replyMessage:messageId content:@"消息内容"];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - messageId
+     - long
+     - 本地数据库消息 id
+   * - content
+     - NSString
+     - 回复内容
+
+
+相关回调
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+发送消息会触发 onConversationMessageAdd（新增消息） 回调 和 onConversationMessageUpdate（消息更新）的回调
+
+::
+
+    //新增消息回调
+    -(void)onConversationMessageAdd:(long)conversationId message:(JCConversationMessageData* __nonnull)message {
+        NSLog(@"消息:%ld 新增", conversationId);
+    }
+
+    //消息更新回调
+    -(void)onConversationMessageUpdate:(long)conversationId message:(JCConversationMessageData* __nonnull)message {
+        NSLog(@"消息:%ld 更新", conversationId);
     }
 
 
@@ -1587,7 +2477,651 @@ JCMessageFetchManager.h
    * - 参数
      - 类型
      - 说明
-   * - member
-     - JCGroupMemberData
-     - JCGroupMemberData 对象
+   * - conversationId
+     - long
+     - 会话数据库 id
+   * - message
+     - JCConversationMessageData
+     - 消息数据库对象
+
+
+消息删除
++++++++++++++++++++++++++++
+
+消息撤回
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+调用下面的方法撤回已发送成功的消息
+::
+
+    [JCMessageWrapper withdrawalMessage:JCMessageChannelType1To1 serverUid:@" 会话服务器 id" dbMessageId:dbMessageId usingBlock:^(bool, int, NSObject * _Nullable) {
+        NSLog(@"消息撤回");
+    }];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - type
+     - JCMessageChannelType
+     - 消息所属会话类型
+   * - serverUid
+     - NSString
+     - 会话服务器 id
+   * - dbMessageId
+     - long
+     - 数据库消息id
+   * - block
+     - MessageOperationBlock
+     - 结果函数，obj 无数据返回
+
+
+删除单条消息
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    //删除消息
+    [JCMessageWrapper deleteMessage:messageId];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - messageId
+     - long
+     - 数据库消息 id
+
+
+删除多条消息
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    [JCMessageWrapper deleteMessages:messageIds];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - messageIds
+     - NSArray<NSNumber*>
+     - 消息数据库id列表
+
+删除会话所有消息
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    [JCMessageWrapper deleteMessagesByConversationId:conversationId];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话数据库id
+
+
+相关回调
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+发送消息会触发 onConversationMessageDelete（新增消息） 回调 和 onConversationMessageUpdate（消息更新）的回调
+
+::
+
+    //消息删除，会话删除导致的消息删除不上报
+    -(void)onConversationMessageDelete:(long)conversationId message:(JCConversationMessageData* __nonnull)message {
+          NSLog(@"消息:%ld 删除", conversationId);
+    }
+
+    //消息更新回调
+    -(void)onConversationMessageUpdate:(long)conversationId message:(JCConversationMessageData* __nonnull)message {
+        NSLog(@"消息:%ld 更新", conversationId);
+    }
+
+
+参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话数据库 id
+   * - message
+     - JCConversationMessageData
+     - 消息数据库对象
+
+
+消息更新
++++++++++++++++++++++++++++
+
+- 更新消息状态
+
+消息状态包括消息发送的状态、收到消息、已读以及撤回。更新消息状态调用下面的接口
+
+::
+
+    //更新消息状态为已收到消息
+    [JCCloudDatabase updateMessageState:messageId state:JCMessageChannelItemStateRecveived];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - messageId
+     - long
+     - 消息数据库id
+   * - state
+     - JCMessageChannelItemState
+     - 消息状态
+
+
+其中，JCMessageChannelItemState 请参考 API reference 中的 JCMessageChannelConstants 类。
+
+
+- 更新文件路径
+
+::
+
+    [JCCloudDatabase updateMessageFilePath:messageId filePath:@"文件路径"];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - messageId
+     - long
+     - 消息数据库id
+   * - filePath
+     - NSString
+     - 文件路径
+
+
+将会话中的所有消息置为已读
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+开发者可使用此功能将消息标为已读和未读状态。
+
+例如，当 A 向 B 发送了一条消息，B 在未阅读之前，A 用户显示此消息未读，当 B 用户阅读并调用发送标为已读接口之后，A 用户可在相关回调中收到通知，此时可根据对应的数据内容将发送的消息显示为已读。
+
+将一个会话的所有消息置为已读接口如下
+::
+
+    // 将该会话所有消息置为已读，并按照内部逻辑设置服务器已读
+    [JCMessageWrapper markRead:conversationId];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 数据库会话 id
+
+
+相关回调
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+消息更新会触发 onConversationMessageUpdate（消息更新）的回调
+
+::
+
+    //消息更新回调
+    -(void)onConversationMessageUpdate:(long)conversationId message:(JCConversationMessageData* __nonnull)message {
+        NSLog(@"消息:%ld 更新", conversationId);
+    }
+
+
+参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话数据库 id
+   * - message
+     - JCConversationMessageData
+     - 消息数据库对象
+
+
+消息查询
++++++++++++++++++++++++++++
+
+拉取服务器会话
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+拉取某一时间点以后的消息
+::
+
+    [JCMessageWrapper refreshConversations:beginTime usingBlock:^(bool, int, NSObject * _Nullable) {
+        NSLog(@"获取服务器会话列表");
+    }];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - beginTime
+     - long
+     - 在此时间以后的活跃会话，单位毫秒，JCCloudDatabase 中 getServerConversationQueryTime 获得最后一次拉取的服务器时间
+   * - block
+     - MessageOperationBlock
+     - 结果函数，成功则 block 的 obj 为 JCServerConversationData 列表
+
+
+拉取历史消息
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+拉取历史消息是以某一条消息 Id 为起始向上拉去一定条数的消息，当 dbMessageId 为 -1 时表示从最新一条开始拉取
+::
+
+    [JCMessageWrapper fetchMessages:@"会话服务器id" dbMessageId:dbMessageId count:5 usingBlock:^(bool, int, NSObject * _Nullable) {
+        NSLog(@"拉取消息");
+    }];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - serverUid
+     - NSString
+     - 会话服务器id
+   * - dbMessageId
+     - long
+     - 起始本地数据库消息id, -1 表示从最新一条开始取
+   * - count
+     - int
+     - 消息条数不包括(dbMessageId)
+   * - block
+     - MessageOperationBlock
+     - 结果函数，obj 无数据返回
+
+
+文件消息下载
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+当收到文件消息时需要调用下面的接口下载文件
+
+- 下载文件
+::
+
+    [JCMessageWrapper downloadFile:messageId fileUrl:@"文件 url" savePath:@"保存路径"];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - messageId
+     - long
+     - 数据库消息 id
+   * - fileUrl
+     - NSString
+     - 文件 url
+   * - savePath
+     - NSString
+     - 保存路径
+
+
+- 下载离线文件
+
+::
+
+    //下载文件，只会更新消息进度，不会更新消息状态，用于离线发送文件下载
+    [JCMessageWrapper downloadFileOnly:messageId fileUrl:@"文件 url" savePath:@"保存路径"];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - messageId
+     - long
+     - 数据库消息 id
+   * - fileUrl
+     - NSString
+     - 文件 url
+   * - savePath
+     - NSString
+     - 保存路径
+
+
+查询一条消息
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    [JCCloudDatabase queryMessage:messageId];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - messageId
+     - long
+     - 消息数据库id
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - JCConversationMessageData
+     - 消息对象, 没有则返回 nil
+
+其中，JCConversationMessageData 对象原型请查看 API reference 中的 JCCloudDatabase 类。
+
+查询本地数据库消息
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    NSArray<JCConversationMessageData*> *messageData = [JCCloudDatabase queryMessages:conversationId count:10 timestamp:lastTimestamp beforeTimestamp:false];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话数据库id
+   * - count
+     - int
+     - 消息条数,  -1 表示符合条件的所有消息
+   * - timestamp
+     - long
+     - 时间位置，-1 表示从最新开始查之前的
+   * - beforeTimestamp
+     - bool
+     - timestamp 不为 -1 才有意义， true 表示在 timestamp 值之前的消息，不包含该时间消息
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - NSArray<JCConversationMessageData*>
+     - 消息列表
+
+
+查询最后一条消息本地数据库 id
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    [JCCloudDatabase getLastMessageId:conversationId];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话数据库 id
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - long
+     - 本地数据库消息id
+
+
+查询最后一条有服务器标识的消息服务器id
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    [JCCloudDatabase getLastServerMessageId:conversationId];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话数据库id
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - long
+     - 服务器消息id
+
+
+消息搜索
++++++++++++++++++++++++++++
+
+搜索回复的消息
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    JCReplySearchData *searchData = [JCCloudDatabase searchReplyData:serverMessageId];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - serverMessageId
+     - long
+     - 消息数据库id
+
+其中，JCReplySearchData 原型请查看 API reference 中的  JCCloudDatabase 类。
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - JCReplySearchData
+     - 回复消息搜索数据对象
+
+
+搜索本地文本消息
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    [JCCloudDatabase searchMessage:@"搜索关键字" contentTypes:@[@"Image", @"Text"] conversationId:conversationId];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - key
+     - NSString
+     - 搜索关键字
+   * - contentTypes
+     - NSArray<NSString*>
+     - 内容类型
+   * - conversationId
+     - long
+     - 会话id，-1表示所有会话
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - JCConversationMessageData
+     - 搜索到的消息对象
+
+搜索包含搜索关键字的会话信息
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    NSArray<JCMessageSearchData*> *searchData = [JCCloudDatabase searchMessage:@"搜索关键字" contentTypes:@[@"Image", @"Text"]];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - key
+     - NSString
+     - 搜索关键字
+   * - contentTypes
+     - NSArray<NSString*>
+     - 内容类型
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - NSArray<JCMessageSearchData*>
+     - 包含搜索关键字的会话信息列表
+
+其中，JCMessageSearchData 有以下属性::
+
+    /// 会话信息
+    @property (nonatomic, strong) JCConversationData* conversation;
+    /// 最后一条匹配消息信息
+    @property (nonatomic, strong) JCConversationMessageData* lastMessageData;
+    /// 消息条数
+    @property (nonatomic) long count;
+
+根据消息类型搜索本地消息
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    //根据消息类型搜索本地消息，一般用于搜索文件消息
+    NSArray<JCConversationMessageData*> *messageData = [JCCloudDatabase searchMessageByContentType:@[@"Image", @"Video"] conversationId:conversationId];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - contentTypes
+     - NSArray<NSString*>
+     - 消息类型数组
+   * - conversationId
+     - long
+     - 会话id，-1表示所有会话
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - NSArray<JCConversationMessageData*>
+     - 会话消息列表
+
 
