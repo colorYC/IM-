@@ -1,7 +1,10 @@
-ServerUid 介绍
+ServerUid 说明
 ===========================
 
 .. highlight:: objective-c
+
+ServerUid 概念介绍
+---------------------------
 
 集成 IM 消息之前，您需要了解下面几个关键的概念。
 
@@ -17,14 +20,17 @@ ServerUid 是菊风云平台的一个标识，分为 用户 ServerUid、群组 S
 
 群组 ServerUid 是菊风云平台为每个群组分配的唯一标识，创建群时由服务器生成。
 
-会话使用 ServerUid 进行唯一标识，一对一会话使用对端用户的 ServerUid 作为会话的 ServerUid，群聊会话使用群的 ServerUid 作为会话的 ServerUid。
+
+.. note::
+
+  会话使用 ServerUid 进行唯一标识，一对一会话使用对端用户的 ServerUid 作为会话的 ServerUid，群聊会话使用群组的 ServerUid 作为会话的 ServerUid。
 
 
-ServerUid 的获取
+ServerUid 获取
 ---------------------------
 
 根据 cloud 账号查询用户的serveruid
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 调用 JCAccount 类里的 queryServerUid 方法查询用户的 ServerUid
 
@@ -85,3 +91,37 @@ ServerUid 的获取
      - NSDictionary<NSString*, NSString*>
      - 查询结果
 
+
+获取群组 ServerUid
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+通过 JCGroupData 实例对象的 server_uid 属性获取。
+
+.. note::
+
+  通过 queryGroup 或者 queryGroups 方法可以获取 JCGroupData 实例对象。
+
+::
+
+  //获取JCConversationData实例对象
+  JCGroupData *groupData = [JCCloudDatabase  queryGroup:@"groupServerUid"];
+  //获取会话 ServerUid
+  NSString * groupServerUid = groupData.server_uid;
+
+
+获取会话 ServerUid
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+通过 JCConversationData 实例对象的 server_uid 属性获取。
+
+.. note::
+
+  通过 queryConversation 或者 queryConversations 方法可以获取 JCConversationData 实例对象。
+
+
+::
+
+  //获取JCConversationData实例对象
+  JCConversationData *conversationData = [JCCloudDatabase queryConversation:@"conversationId"];
+  //获取会话 ServerUid
+  NSString *conversationServerUid = conversationData.server_uid;
