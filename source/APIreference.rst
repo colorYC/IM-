@@ -13,6 +13,23 @@ API 参考
 `JCClientReason（原因枚举） <https://developer.juphoon.com/portal/reference/V2.0/ios/Constants/JCClientReason.html>`_
 
 
+IM 消息
+------------------------
+
+- JCCloudManager
+     - 主要用于初始化、管理与cloud相关的所有回调和会话管理
+- JCCloudDatabase
+     - 会话信息的数据库操作（如打开/关闭数据库、获取会话相关的信息、查询、搜索、保存会话信息以及会话的管理等）
+- JCMessageWrapper
+     - 主要用于消息管理，包括发送消息，重发、转发、回复、消息已读、撤回、拉取消息、获取会话列表等
+- JCMessageFetchManager
+     - 主要用于会话同步
+- JCOperationCacheDeal
+     - 主要用于返回操作的结果
+- JCGroupWrapper
+     - 主要用于群组管理，例如创建群、解散群等操作
+
+
 一对一音视频通话类
 ------------------------
 
@@ -47,20 +64,3 @@ API 参考
 `JCMediaDeviceRotateAngle（窗口与屏幕角度） <https://developer.juphoon.com/portal/reference/V2.0/ios/Constants/JCMediaDeviceRotateAngle.html>`_
 
 `JCMediaDeviceVideoPixelFormat（视频像素格式） <https://developer.juphoon.com/portal/reference/V2.0/ios/Constants/JCMediaDeviceVideoPixelFormat.html>`_
-
-
-IM 消息
-------------------------
-
-- JCCloudManager
-     - 主要用于初始化、管理与cloud相关的所有回调和会话管理
-- JCCloudDatabase
-     - 会话信息的数据库操作（如打开/关闭数据库、获取会话相关的信息、查询、搜索、保存会话信息以及会话的管理等）
-- JCMessageWrapper
-     - 主要用于消息管理，包括发送消息，重发、转发、回复、消息已读、撤回、拉取消息、获取会话列表等
-- JCMessageFetchManager
-     - 主要用于会话同步
-- JCOperationCacheDeal
-     - 主要用于返回操作的结果
-- JCGroupWrapper
-     - 主要用于群组管理，例如创建群、解散群等操作

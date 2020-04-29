@@ -6,6 +6,7 @@ iOS
 
 想要快速体验 Demo，请按以下步骤操作：
 
+
 1. 获取 AppKey
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -66,10 +67,6 @@ JuphoonCommon 为工程所依赖的独立模块，提供 http 账号管理功能
    :width: 300
    :height: 520
 
-.. image:: images/pic6.png
-   :width: 300
-   :height: 520
-
 .. image:: images/pic3.png
    :width: 300
    :height: 520
@@ -79,5 +76,21 @@ JuphoonCommon 为工程所依赖的独立模块，提供 http 账号管理功能
    :height: 520
 
 .. image:: images/pic5.jpeg
+   :width: 300
+   :height: 520
+
+.. image:: images/pic6.png
+   :width: 300
+   :height: 520
+
+.. image:: images/pic7.png
+   :width: 300
+   :height: 520
+
+.. image:: images/pic8.png
+   :width: 300
+   :height: 520
+
+.. image:: images/pic9.png
    :width: 300
    :height: 520

@@ -11,20 +11,22 @@
 - 有效的菊风开发者账号（`免费注册 <http://developer.juphoon.com/signup>`_ ）
 
 
+准备工作
+----------------------
+
+SDK 下载
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+点击 `iOS SDK <>`_ 进行下载。如果已经下载了 SDK，请直接进行 SDK 配置。
+
 AppKey 获取
--------------------------
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 AppKey 是应用在 菊风云平台 中的唯一标识。需要在 SDK 初始化的时候使用，AppKey 获取请参考 :ref:`创建应用 <创建应用>` 。
 
 
-SDK 下载
--------------------------
-
-点击 `iOS SDK <>`_ 进行下载。如果已经下载了 SDK，请直接进行 SDK 配置。
-
-
-导入 SDK
--------------------------
+SDK 配置
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 您可以在工程中使用静态库或者动态库，此处介绍使用静态库的配置方法。如果想使用动态库，请参考动态库的配置说明文档 :ref:`iOS 导入动态库<iOS 导入动态库>` 。
 
@@ -128,8 +130,8 @@ SDK 下载
 .. note:: SDK 不支持模拟器运行，请使用真机。
 
 
-引入 SDK
--------------------------
+SDK 初始化
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 引入头文件
 
@@ -137,9 +139,6 @@ SDK 下载
 ::
 
     #import <JCCloudWrapper/JCCloudWrapper.h>
-
-初始化
--------------------------
 
 开发者在使用 JC SDK 所有功能之前，必须先调用初始化方法初始化 SDK。 在 App 的整个生命周期中，开发者只需要将 SDK 初始化一次。
 ::
@@ -211,13 +210,8 @@ SDK 下载
     [JCCloudManager.shared uninitialize];
 
 
-账号管理
------------------------
-
-账号管理主要包括登录和设置昵称。
-
 登录
->>>>>>>>>>>>>>>>>>>>>
+-----------------------
 
 **登录介绍**
 
@@ -239,7 +233,8 @@ SDK 下载
 
 .. image:: images/loginflow.png
 
-**发起登录**
+登录设置
+>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 登录之前，可以通过 loginParam 登录参数进行登录的相关配置，如服务器地址的设置或者使用代理服务器登录，如不设置则按照默认值登录，具体如下：
 
@@ -250,8 +245,7 @@ SDK 下载
         loginParam.serverAddress = @"服务器地址";
         //如果使用代理服务器登录
         loginParam.httpsProxy = @"代理服务器地址";
-        //发起登录
-        [JCCloudManager.shared.client login:@"手机号码" password:@"密码" loginParam:loginParam];
+
 
 其中，服务器地址包括国际环境服务器地址和国内环境服务器地址：
 
@@ -260,6 +254,14 @@ SDK 下载
 **国内环境** 服务器地址默认为 ``http:cn.router.justalkcloud.com:8080`` 。
 
 开发者可以使用 **自定义服务器地址 **。
+
+发起登录
+>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+::
+
+        //发起登录
+        [JCCloudManager.shared.client login:@"手机号码" password:@"密码" loginParam:loginParam];
 
 参数介绍：
 
@@ -397,59 +399,7 @@ SDK 下载
      - 当 result 为 false 时该值有效
 
 
-其中，JCClientReason 有
-::
-
-    /// 正常
-    JCClientReasonNone,
-    /// sdk 未初始化
-    JCClientReasonSDKNotInit,
-    /// 无效的参数
-    JCClientReasonInvalidParam,
-    /// 函数调用失败
-    JCClientReasonCallFunctionError,
-    /// 当前状态无法再次登录
-    JCClientReasonStateCannotLogin,
-    /// 超时
-    JCClientReasonTimeOut,
-    /// 网络异常
-    JCClientReasonNetWork,
-    /// appkey 错误
-    JCClientReasonAppKey,
-    /// 账号密码错误
-    JCClientReasonAuth,
-    /// 无该用户
-    JCClientReasonNoUser,
-    /// 被强制登出
-    JCClientReasonServerLogout,
-    /// 其他设备已登录
-    JCClientReasonAnotherDeviceLogined,
-    /// 本地请求失败
-    JCClientReasonLocalRequest,
-    /// 发消息失败
-    JCClientReasonSendMessage,
-    /// 服务器忙
-    JCClientReasonServerBusy,
-    /// 服务器不可达
-    JCClientReasonServerNotReach,
-    /// 服务器不可达
-    JCClientReasonServerForbidden,
-    /// 服务器不可用
-    JCClientReasonServerUnavaliable,
-    /// DNS 查询错误
-    JCClientReasonDnsQuery,
-    /// 服务器内部错误
-    JCClientReasonInternal,
-    /// 无资源
-    JCClientReasonNoResource,
-    /// 没有回应验证码
-    JCClientReasonNoNonce,
-    /// 无效验证码
-    JCClientReasonInvalidAuthCode,
-    /// token不匹配
-    JCClientReasonTokenMismatch,
-    /// 其他错误
-    JCClientReasonOther = 100,
+其中，JCClientReason 请参考 `API 接口文档 <https://developer.juphoon.com/portal/reference/V2.0/IM/ios/Constants/JCClientState.html>`_。
 
 登录成功之后，SDK 会自动保持与服务器的连接状态，直到用户主动调用登出接口，或者因为帐号在其他设备登录导致该设备被登出。
 
