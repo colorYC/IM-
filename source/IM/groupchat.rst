@@ -22,7 +22,7 @@ SDK 下载
 AppKey 获取
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-AppKey 是应用在 菊风云平台 中的唯一标识。需要在 SDK 初始化的时候使用，AppKey 获取请参考 :ref:`创建应用 <创建应用>` 。
+AppKey 是应用在 菊风云平台 中的唯一标识。需要在 SDK 初始化的时候使用，AppKey 获取请参考 `创建应用 <https://developer.juphoon.com/cn/document/create-application.php>`_ 。
 
 
 SDK 配置
@@ -164,7 +164,7 @@ SDK 初始化
    * - appKey
      - NSString
      - 是
-     - 创建应用获取的AppKey，如果还未获取 AppKey，请参考 :ref:`创建应用 <创建应用>` 来获取。
+     - 创建应用获取的AppKey，如果还未获取 AppKey，请参考 `创建应用 <https://developer.juphoon.com/cn/document/create-application.php>`_  来获取。
    * - createParam
      - JCClientCreateParam
      - 否

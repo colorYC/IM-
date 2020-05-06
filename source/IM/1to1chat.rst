@@ -22,7 +22,7 @@ SDK 下载
 AppKey 获取
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-AppKey 是应用在 菊风云平台 中的唯一标识。需要在 SDK 初始化的时候使用，AppKey 获取请参考 :ref:`创建应用 <创建应用>` 。
+AppKey 是应用在 菊风云平台 中的唯一标识。需要在 SDK 初始化的时候使用，AppKey 获取请参考 `创建应用 <https://developer.juphoon.com/cn/document/create-application.php>`_ 。
 
 
 SDK 配置
@@ -164,7 +164,7 @@ SDK 初始化
    * - appKey
      - NSString
      - 是
-     - 创建应用获取的AppKey，如果还未获取 AppKey，请参考 :ref:`创建应用 <创建应用>` 来获取。
+     - 创建应用获取的AppKey，如果还未获取 AppKey，请参考 `创建应用 <https://developer.juphoon.com/cn/document/create-application.php>`_ 来获取。
    * - createParam
      - JCClientCreateParam
      - 否
@@ -1900,6 +1900,7 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 
 其中，JCConversationMessageData 对象原型请查看 API reference 中的 JCCloudDatabase 类。
 
+
 查询本地数据库消息
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -2039,9 +2040,10 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 搜索本地文本消息
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+通过搜索关键字以及消息内容类型搜索本地文本消息，接口如下
 ::
 
-    [JCCloudDatabase searchMessage:@"搜索关键字" contentTypes:@[@"Image", @"Text"] conversationId:conversationId];
+    JCConversationMessageData *data = [JCCloudDatabase searchMessage:@"搜索关键字" contentTypes:@[@"Image", @"Text"] conversationId:conversationId];
 
 输入参数介绍：
 
@@ -2071,8 +2073,11 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
    * - JCConversationMessageData
      - 搜索到的消息对象
 
+
 搜索包含搜索关键字的会话信息
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+可以通过搜索关键字和消息的内容类型搜索相关的会话信息，接口如下
 
 ::
 

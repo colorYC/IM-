@@ -29,7 +29,7 @@ ServerUid 是菊风云平台的一个标识，分为 用户 ServerUid、群组 S
 ServerUid 获取
 ---------------------------
 
-根据 cloud 账号查询用户的serveruid
+根据 cloud 账号查询
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 调用 JCAccount 类里的 queryServerUid 方法查询用户的 ServerUid
