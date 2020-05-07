@@ -19,6 +19,7 @@ SDK 下载
 
 点击 `iOS SDK <>`_ 进行下载。如果已经下载了 SDK，请直接进行 SDK 配置。
 
+
 AppKey 获取
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -483,6 +484,21 @@ SDK 初始化
    * - JCOperationCacheDeal
      - 主要用于返回操作的结果
 
+
+群组介绍
+>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+群组是指两个以上的用户一起进行聊天。用 JCGroupData 对象来表示。
+
+JCGroupData 对象包含群服务器 uid、群名称、群类型等属性，详见 API reference 中的 JCCloudDatabase 类。
+
+
+设置监听
+>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+开发者需要实现 JCCloudManagerDelegate 回调。当群组状态发生变化时，开发者可通过对应的方法做处理。
+
+协议中的方法请参考 API reference 中的 JCCloudManager 类。
 
 群组管理
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -1387,7 +1403,7 @@ JCGroupMember 对象的详细信息请参考 API reference。
 数据库操作要在同一线程中，可以通过调用 JCCloudManager 类中的异步调用方法实现数据库的异步操作
 
 异步操作数据库
-+++++++++++++++++++++++++++
+
 ::
 
     [JCCloudManager.shared dispatchIm:^{
@@ -1416,7 +1432,7 @@ JCGroupMember 对象的详细信息请参考 API reference。
 
 
 打开/关闭数据库
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 调用下面的方法打开数据库
 ::
@@ -1801,8 +1817,33 @@ JCGroupMember 对象的详细信息请参考 API reference。
      - 会话数据库 id
 
 
-设置会话置顶
+相关回调
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+更新会话会触发 onConversationUpdate（会话更新）的回调
+
+::
+
+    -(void)onConversationUpdate:(long)conversationId {
+        NSLog(@"会话:%ld 更新", conversationId);
+    }
+
+
+参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话数据库 id
+
+
+会话置顶
++++++++++++++++++++++++++
 
 在会话界面中调用 JCCloudManager 类中的 setConversationPriority 方法设置会话置顶
 ::
@@ -1845,7 +1886,7 @@ JCGroupMember 对象的详细信息请参考 API reference。
 
 
 会话免打扰
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++++++++++++++++++++++++++
 
 在会话界面中调用 JCCloudManager 类中的 setConversationDnd 方法设置会话免打扰
 ::
@@ -1871,6 +1912,31 @@ JCGroupMember 对象的详细信息请参考 API reference。
    * - block
      - CloudOperationBlock
      - 结果函数
+
+
+相关回调
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+更新会话会触发 onConversationUpdate（会话更新）的回调
+
+::
+
+    -(void)onConversationUpdate:(long)conversationId {
+        NSLog(@"会话:%ld 更新", conversationId);
+    }
+
+
+参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话数据库 id
 
 
 相关回调
@@ -2467,6 +2533,7 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
      - NSArray<NSNumber*>
      - 消息数据库id列表
 
+
 删除会话所有消息
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -2522,117 +2589,7 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
      - 消息数据库对象
 
 
-消息更新
-+++++++++++++++++++++++++++
-
-- 更新消息状态
-
-消息状态包括消息发送的状态、收到消息、已读以及撤回。更新消息状态调用下面的接口
-
-::
-
-    //更新消息状态为已收到消息
-    [JCCloudDatabase updateMessageState:messageId state:JCMessageChannelItemStateRecveived];
-
-
-输入参数介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - messageId
-     - long
-     - 消息数据库id
-   * - state
-     - JCMessageChannelItemState
-     - 消息状态
-
-
-其中，JCMessageChannelItemState 请参考 API reference 中的 JCMessageChannelConstants 类。
-
-
-- 更新文件路径
-
-::
-
-    [JCCloudDatabase updateMessageFilePath:messageId filePath:@"文件路径"];
-
-
-输入参数介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - messageId
-     - long
-     - 消息数据库id
-   * - filePath
-     - NSString
-     - 文件路径
-
-
-将会话中的所有消息置为已读
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-开发者可使用此功能将消息标为已读和未读状态。
-
-例如，当 A 向 B 发送了一条消息，B 在未阅读之前，A 用户显示此消息未读，当 B 用户阅读并调用发送标为已读接口之后，A 用户可在相关回调中收到通知，此时可根据对应的数据内容将发送的消息显示为已读。
-
-将一个会话的所有消息置为已读接口如下
-::
-
-    // 将该会话所有消息置为已读，并按照内部逻辑设置服务器已读
-    [JCMessageWrapper markRead:conversationId];
-
-输入参数介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - conversationId
-     - long
-     - 数据库会话 id
-
-
-相关回调
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-消息更新会触发 onConversationMessageUpdate（消息更新）的回调
-
-::
-
-    //消息更新回调
-    -(void)onConversationMessageUpdate:(long)conversationId message:(JCConversationMessageData* __nonnull)message {
-        NSLog(@"消息:%ld 更新", conversationId);
-    }
-
-
-参数介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - conversationId
-     - long
-     - 会话数据库 id
-   * - message
-     - JCConversationMessageData
-     - 消息数据库对象
-
-
-消息查询
+拉取消息
 +++++++++++++++++++++++++++
 
 拉取服务器会话
@@ -2750,6 +2707,148 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
      - 保存路径
 
 
+消息置为已读
++++++++++++++++++++++++++++++
+
+开发者可使用此功能将会话中的所有消息标为已读和未读状态。
+
+例如，当 A 向 B 发送了一条消息，B 在未阅读之前，A 用户显示此消息未读，当 B 用户阅读并调用发送标为已读接口之后，A 用户可在相关回调中收到通知，此时可根据对应的数据内容将发送的消息显示为已读。
+
+将一个会话的所有消息置为已读接口如下
+::
+
+    // 将该会话所有消息置为已读，并按照内部逻辑设置服务器已读
+    [JCMessageWrapper markRead:conversationId];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 数据库会话 id
+
+
+相关回调
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+消息更新会触发 onConversationMessageUpdate（消息更新）的回调
+
+::
+
+    //消息更新回调
+    -(void)onConversationMessageUpdate:(long)conversationId message:(JCConversationMessageData* __nonnull)message {
+        NSLog(@"消息:%ld 更新", conversationId);
+    }
+
+
+参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话数据库 id
+   * - message
+     - JCConversationMessageData
+     - 消息数据库对象
+
+
+本地数据库消息更新
++++++++++++++++++++++++++++
+
+- 更新消息状态
+
+消息状态包括消息发送的状态、收到消息、已读以及撤回。更新消息状态调用下面的接口
+
+::
+
+    //更新消息状态为已收到消息
+    [JCCloudDatabase updateMessageState:messageId state:JCMessageChannelItemStateRecveived];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - messageId
+     - long
+     - 消息数据库id
+   * - state
+     - JCMessageChannelItemState
+     - 消息状态
+
+
+其中，JCMessageChannelItemState 请参考 API reference 中的 JCMessageChannelConstants 类。
+
+
+- 更新文件路径
+
+::
+
+    [JCCloudDatabase updateMessageFilePath:messageId filePath:@"文件路径"];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - messageId
+     - long
+     - 消息数据库id
+   * - filePath
+     - NSString
+     - 文件路径
+
+
+相关回调
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+消息更新会触发 onConversationMessageUpdate（消息更新）的回调
+
+::
+
+    //消息更新回调
+    -(void)onConversationMessageUpdate:(long)conversationId message:(JCConversationMessageData* __nonnull)message {
+        NSLog(@"消息:%ld 更新", conversationId);
+    }
+
+
+参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话数据库 id
+   * - message
+     - JCConversationMessageData
+     - 消息数据库对象
+
+
+消息查询
++++++++++++++++++++++++++++
+
 查询一条消息
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -2781,6 +2880,7 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
      - 消息对象, 没有则返回 nil
 
 其中，JCConversationMessageData 对象原型请查看 API reference 中的 JCCloudDatabase 类。
+
 
 查询本地数据库消息
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2921,9 +3021,10 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 搜索本地文本消息
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+通过搜索关键字以及消息内容类型搜索本地文本消息，接口如下
 ::
 
-    [JCCloudDatabase searchMessage:@"搜索关键字" contentTypes:@[@"Image", @"Text"] conversationId:conversationId];
+    JCConversationMessageData *data = [JCCloudDatabase searchMessage:@"搜索关键字" contentTypes:@[@"Image", @"Text"] conversationId:conversationId];
 
 输入参数介绍：
 
@@ -2953,8 +3054,11 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
    * - JCConversationMessageData
      - 搜索到的消息对象
 
+
 搜索包含搜索关键字的会话信息
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+可以通过搜索关键字和消息的内容类型搜索相关的会话信息，接口如下
 
 ::
 
@@ -2995,6 +3099,7 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
     /// 消息条数
     @property (nonatomic) long count;
 
+
 根据消息类型搜索本地消息
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -3027,5 +3132,3 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
      - 说明
    * - NSArray<JCConversationMessageData*>
      - 会话消息列表
-
-
