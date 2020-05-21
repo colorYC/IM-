@@ -142,6 +142,8 @@ SDK 初始化
     #import <JCCloudWrapper/JCCloudWrapper.h>
 
 开发者在使用 JC SDK 所有功能之前，必须先调用初始化方法初始化 SDK。 在 App 的整个生命周期中，开发者只需要将 SDK 初始化一次。
+
+调用初始化方法时可以通过 createParam 参数设置 SDK 信息以及日志的存放路径，当 createParam 参数为空时，则使用默认设置。
 ::
 
     JCClientCreateParam *param = [[JCClientCreateParam alloc] init];

@@ -14,7 +14,7 @@ ServerUid 是菊风云平台的一个标识，分为 用户 ServerUid、群组 S
 
 - 用户 ServerUid
 
-用户 ServerUid 是菊风云平台为每个用户分配的唯一标识，创建用户时由服务器生成。例如 userId 为 “小李”，他对应的 serverUid 是“10032-22”。
+用户 ServerUid 是菊风云平台为每个用户分配的唯一标识，创建用户时由服务器生成。例如 userId 为 “小李”，他对应的 serverUid 是“10032_22”。
 
 - 群组 ServerUid
 
@@ -29,7 +29,7 @@ ServerUid 是菊风云平台的一个标识，分为 用户 ServerUid、群组 S
 ServerUid 获取
 ---------------------------
 
-根据 cloud 账号查询
+根据 Juphoon Cloud 账号查询
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 调用 JCAccount 类里的 queryServerUid 方法查询用户的 ServerUid
@@ -95,33 +95,123 @@ ServerUid 获取
 获取群组 ServerUid
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-通过 JCGroupData 实例对象的 server_uid 属性获取。
+获取群组 ServerUid 有以下几种方法：
 
-.. note::
-
-  通过 queryGroup 或者 queryGroups 方法可以获取 JCGroupData 实例对象。
+- 通过查询所有群组获得
 
 ::
 
-  //获取JCConversationData实例对象
-  JCGroupData *groupData = [JCCloudDatabase  queryGroup:@"groupServerUid"];
-  //获取会话 ServerUid
-  NSString * groupServerUid = groupData.server_uid;
+   /**
+    *  @brief   查询所有群组
+    *  @return 群组列表
+    */
+    +(NSArray<JCGroupData*>*)queryGroups;
+
+
+返回参数
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - NSArray<JCGroupData*>
+     - JCGroupData对象数组
+
+- 通过查询创建的群获得
+::
+
+    /**
+     *  @brief  查询创建的群
+     *  @param  memberSeverUid 创建者 serverUid
+     *  @return 群列表
+     */
+    +(NSArray<JCGroupData*>*)queryOwnedGroups:(NSString* __nonnull)memberSeverUid;
+
+输入参数
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - memberSeverUid
+     - NSString
+     - 创建者 serverUid
+
+
+返回参数
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - NSArray<JCGroupData*>
+     - JCGroupData对象数组
+
+
+- 通过查询加入的群的获得
+::
+
+    /**
+     *  @brief  查询加入的群
+     *  @param  memberSeverUid 创建者 serverUid
+     *  @return 群列表
+     */
+    +(NSArray<JCGroupData*>*)queryJoinedGroups:(NSString* __nonnull)memberSeverUid;
+
+输入参数
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - memberSeverUid
+     - NSString
+     - 创建者 serverUid
+
+
+返回参数
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - NSArray<JCGroupData*>
+     - JCGroupData对象数组
 
 
 获取会话 ServerUid
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-通过 JCConversationData 实例对象的 server_uid 属性获取。
+通过 JCConversationData 实例对象的 server_uid 属性获取会话 ServerUid。
 
-.. note::
+JCConversationData 实例对象可通过 queryConversations 方法获取
+::
 
-  通过 queryConversation 或者 queryConversations 方法可以获取 JCConversationData 实例对象。
+    /**
+     *  @brief  查询所有会话
+     */
+    +(NSArray<JCConversationData*>*)queryConversations;
 
+返回参数
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - NSArray<JCConversationData*>
+     - JCConversationData对象数组
 
 ::
 
-  //获取JCConversationData实例对象
-  JCConversationData *conversationData = [JCCloudDatabase queryConversation:@"conversationId"];
-  //获取会话 ServerUid
-  NSString *conversationServerUid = conversationData.server_uid;
+    //获取JCConversationData实例对象
+    NSArray<JCConversationData*>* conversationData = [JCCloudDatabase queryConversations];
+    //获取会话 ServerUid
+    NSString *conversationServerUid = conversationData[0].server_uid;
