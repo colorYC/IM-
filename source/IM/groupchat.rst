@@ -1466,102 +1466,10 @@ JCGroupMember 对象的详细信息请参考 API reference。
 
 会话管理主要涉及 JCCloudDatabase 类中的方法，JCCloudDatabase 是数据库管理类，用于会话的增删改查。
 
-数据库操作要在同一线程中，可以通过调用 JCCloudManager 类中的异步调用方法实现数据库的异步操作
-
-异步操作数据库
-
-::
-
-    [JCCloudManager.shared dispatchIm:^{
-       //数据库操作
-    }];
-
-    [JCCloudManager.shared dispatchImDelay:^{
-        //数据库操作
-    } delay:1000];
-
-
-输入参数介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - block
-     - void(^)(void)
-     - block线程
-   * - millisecond
-     - int
-     - 延迟执行时间
-
-
-打开/关闭数据库
-
-
-调用下面的方法打开数据库
-::
-
-    bool ret = [JCCloudDatabase open:JCCloudManager.shared.client.userId];
-
-输入参数介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - name
-     - NSString
-     - 用户userId
-
-返回值介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 返回值类型
-     - 说明
-   * - bool
-     - 方法是否调用成功
-
-
-调用下面的方法关闭数据库
-::
-
-    [JCCloudDatabase close];
+数据库操作都是异步执行的。
 
 创建会话
 +++++++++++++++++++++++++++
-
-发起群聊，首先会根据传入的 serverUid 查询本地数据库有无此会话，没有则会自动创建
-::
-
-    long conversationId = [JCCloudDatabase getConversation:@"服务器会话 uid"];
-
-输入参数介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - serverUid
-     - NSString
-     - 服务器会话 uid，一对一实际是对方的个人 uid，群组 id 要创建成功才能获得
-
-返回值介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 返回值类型
-     - 说明
-   * - long
-     - 会话id，没有返回 -1
 
 创建会话有两种方式：
 
@@ -1569,7 +1477,7 @@ JCGroupMember 对象的详细信息请参考 API reference。
 
 ::
 
-    long conversationId = [JCCloudDatabase getOrCreateConversation:JCConversationTypeGroup serverUid:@"服务器会话 uid" name:@"会话名字"];
+    long conversationId = [JCCloudDatabase getOrCreateConversation:JCConversationType1To1 serverUid:@"服务器会话 uid" name:@"会话名字"];
 
 
 输入参数介绍：
@@ -1612,7 +1520,7 @@ JCGroupMember 对象的详细信息请参考 API reference。
 
 ::
 
-    long conversationId = [JCCloudDatabase getOrCreateConversation:JCConversationTypeGroup serverUid:@"服务器会话 uid" name:@"会话名字" lastActiveTime:lastActiveTime];
+    long conversationId = [JCCloudDatabase getOrCreateConversation:JCConversationType1To1 serverUid:@"服务器会话 uid" name:@"会话名字" lastActiveTime:lastActiveTime];
 
 
 输入参数介绍：
@@ -1646,11 +1554,42 @@ JCGroupMember 对象的详细信息请参考 API reference。
    * - long
      - 会话id，没有返回 -1
 
+
+创建会话前会先根据传入的 serverUid 查询本地数据库有无此会话
+::
+
+    long conversationId = [JCCloudDatabase getConversation:@"服务器会话 uid"];
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - serverUid
+     - NSString
+     - 服务器会话 uid，一对一实际是对方的个人 uid，群组 id 要创建成功才能获得
+
+返回值介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 返回值类型
+     - 说明
+   * - long
+     - 会话id，没有返回 -1
+
+如果已有此会话 id，则会直接返回会话 id；如果没有则会自动创建。
+
+
 **相关回调**
 
 创建会话会收到 onConversationAdd（新增会话） 回调
 ::
-    
+ 
     -(void)onConversationAdd:(long)conversationId {
         NSLog(@"收到新增会话回调，conversationId %ld", conversationId);
     }
@@ -1666,7 +1605,7 @@ JCGroupMember 对象的详细信息请参考 API reference。
      - 说明
    * - conversationId
      - long
-     - 会话数据库 id
+     - 会话 id
 
 
 删除会话
@@ -1678,7 +1617,7 @@ JCGroupMember 对象的详细信息请参考 API reference。
 通过传入本地会话 id 删除会话
 ::
 
-    [JCCloudDatabase deleteConversation:@"本地会话 id"];
+    [JCCloudDatabase deleteConversation:@"conversationId"];
 
 
 输入参数介绍：
@@ -1691,7 +1630,8 @@ JCGroupMember 对象的详细信息请参考 API reference。
      - 说明
    * - conversationId
      - long
-     - 会话数据库 id
+     - 会话 id
+
 
 删除所有会话
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1768,9 +1708,6 @@ JCGroupMember 对象的详细信息请参考 API reference。
      - 说明
    * - serverUid
      - NSString
-     - 会话服务器id
-   * - serverUid
-     - NSString
      - 服务器会话 uid，一对一实际是对方的个人 uid，群组 id 要创建成功才能获得
    * - name
      - NSString
@@ -1797,7 +1734,7 @@ JCGroupMember 对象的详细信息请参考 API reference。
      - 服务器会话 uid
    * - icon
      - NSString
-     - 会话图标
+     - 会话图标的路径
 
 
 保存草稿
@@ -1870,19 +1807,6 @@ JCGroupMember 对象的详细信息请参考 API reference。
      - 本地会话 id
 
 
-参数介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - conversationId
-     - long
-     - 会话数据库 id
-
-
 相关回调
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -1938,19 +1862,6 @@ JCGroupMember 对象的详细信息请参考 API reference。
      - 结果函数
 
 
-参数介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - conversationId
-     - long
-     - 会话数据库 id
-
-
 会话免打扰
 +++++++++++++++++++++++++
 
@@ -1978,31 +1889,6 @@ JCGroupMember 对象的详细信息请参考 API reference。
    * - block
      - CloudOperationBlock
      - 结果函数
-
-
-相关回调
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-更新会话会触发 onConversationUpdate（会话更新）的回调
-
-::
-
-    -(void)onConversationUpdate:(long)conversationId {
-        NSLog(@"会话:%ld 更新", conversationId);
-    }
-
-
-参数介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - conversationId
-     - long
-     - 会话数据库 id
 
 
 相关回调
@@ -2245,7 +2131,7 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
      - 消息所属会话类型
    * - serverUid
      - NSString
-     - 话服务器 id，一对一必须先获得对方 userId 的 serverUid，群聊必须先获得群的 serverUid
+     - 会话服务器 id，一对一必须先获得对方 userId 的 serverUid，群聊必须先获得群的 serverUid
    * - contentType
      - NSString
      - 消息类型
@@ -2330,71 +2216,17 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
      - @成员的serverUid列表 针对群消息
 
 
-发送文件接口调用后会触发 onPreDealFileTransfer 回调，该回调返回 true 表示上层要要对该文件进行处理，处理完需要调用 JCMessageWrapper 类中的 setPreDealFile 方法设置处理后的文件，返回 false 则表示内部继续处理
-::
-
-    // 预处理文件发送
-    -(bool)onPreDealFileTransfer:(JCConversationMessageData* __nonnull)message;
-
-
-参数介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - message
-     - JCConversationMessageData
-     - 消息对象
-
-返回值介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 返回值类型
-     - 说明
-   * - bool
-     - true 表示上层要要对该文件进行处理，处理完需要调用 JCMessageWrapper.setPreDealFile，false 则内部继续处理
-
-设置处理完的文件
-::
-
-    [JCMessageWrapper setPreDealFile:messageId result:true  dealedFilePath:@"处理后的文件路径" dealedFileSize:size];
-
-
-输入参数介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - messageId
-     - long
-     - 数据库消息 id
-   * - result
-     - bool
-     - 处理结果
-   * - dealedFilePath
-     - NSString
-     - 处理后的文件路径
-   * - dealedFileSize
-     - int
-     - 处理后的文件大小
-
-
 消息重发
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 调用下面的方法进行消息重发，只针对发送失败消息的情况，会删除原先消息并重新生成一条
 ::
 
+    // 获取messageId
+    long messageId = [JCCloudDatabase addMessage:type serverUid:serverUid senderUid:JCCloudManager.shared.client.serverUid contentType:contentType content:content extra:extraParams atAll:atAll atServerUidList:atServerUidList];
     // 重发消息，只针对发送失败消息，会删除原先消息并重新生成一条
     [JCMessageWrapper resendMessage:messageId];
+
 
 输入参数介绍：
 
@@ -2418,6 +2250,8 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 
 ::
 
+    // 获取messageId
+    long messageId = [JCCloudDatabase addMessage:type serverUid:serverUid senderUid:JCCloudManager.shared.client.serverUid contentType:contentType content:content extra:extraParams atAll:atAll atServerUidList:atServerUidList];
     //转发消息，有文件url和文本消息都可以转发
     [JCMessageWrapper forwordMessage:messageIds serverUids:serverUids];
 
@@ -2524,39 +2358,6 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 消息删除
 +++++++++++++++++++++++++++
 
-消息撤回
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-调用下面的方法撤回已发送成功的消息
-::
-
-    [JCMessageWrapper withdrawalMessage:JCMessageChannelType1To1 serverUid:@" 会话服务器 id" dbMessageId:dbMessageId usingBlock:^(bool, int, NSObject * _Nullable) {
-        NSLog(@"消息撤回");
-    }];
-
-
-输入参数介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - type
-     - JCMessageChannelType
-     - 消息所属会话类型
-   * - serverUid
-     - NSString
-     - 会话服务器 id
-   * - dbMessageId
-     - long
-     - 数据库消息id
-   * - block
-     - MessageOperationBlock
-     - 结果函数，obj 无数据返回
-
-
 删除单条消息
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -2620,6 +2421,38 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
      - long
      - 会话数据库id
 
+消息撤回
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+调用下面的方法撤回已发送成功的消息
+::
+
+    [JCMessageWrapper withdrawalMessage:JCMessageChannelType1To1 serverUid:@" 会话服务器 id" dbMessageId:dbMessageId usingBlock:^(bool, int, NSObject * _Nullable) {
+        NSLog(@"消息撤回");
+    }];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - type
+     - JCMessageChannelType
+     - 消息所属会话类型
+   * - serverUid
+     - NSString
+     - 会话服务器 id
+   * - dbMessageId
+     - long
+     - 数据库消息id
+   * - block
+     - MessageOperationBlock
+     - 结果函数，obj 无数据返回
+
 
 相关回调
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2628,7 +2461,7 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 
 ::
 
-    //消息删除，会话删除导致的消息删除不上报
+    //消息删除回调
     -(void)onConversationMessageDelete:(long)conversationId message:(JCConversationMessageData* __nonnull)message {
           NSLog(@"消息:%ld 删除", conversationId);
     }
@@ -2661,7 +2494,7 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 拉取服务器会话
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-拉取某一时间点以后的消息
+拉取某一时间点以后的消息，登录后会自动拉取服务器会话
 ::
 
     [JCMessageWrapper refreshConversations:beginTime usingBlock:^(bool, int, NSObject * _Nullable) {
@@ -2721,12 +2554,18 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 文件消息下载
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-当收到文件消息时需要调用下面的接口下载文件
-
 - 下载文件
+
+当收到消息时会收到 onConversationMessageAdd 回调
+
+此时可以根据 message 对象的 direction 属性判断是接收消息还是发送消息，如果为 JCMessageChannelItemDirectionReceive 则为收到消息；通过 message 对象的 content_type（可以自定义） 属性判断消息类型，如果消息类型为文件，则需要调用下面的接口下载文件
+
 ::
 
-    [JCMessageWrapper downloadFile:messageId fileUrl:@"文件 url" savePath:@"保存路径"];
+    -(void)onConversationMessageAdd:(long)conversationId message:(JCConversationMessageData* __nonnull)message {
+        //下载文件
+        [JCMessageWrapper downloadFile:message._id fileUrl:message.file_url savePath:@"保存路径"];
+    }
 
 输入参数介绍：
 
@@ -2831,7 +2670,7 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 本地数据库消息更新
 +++++++++++++++++++++++++++
 
-- 更新消息状态
+**更新消息状态**
 
 消息状态包括消息发送的状态、收到消息、已读以及撤回。更新消息状态调用下面的接口
 
@@ -2858,29 +2697,6 @@ JCConversationMessageData 对象包含消息id、会话id、发送消息的userI
 
 
 其中，JCMessageChannelItemState 请参考 API reference 中的 JCMessageChannelConstants 类。
-
-
-- 更新文件路径
-
-::
-
-    [JCCloudDatabase updateMessageFilePath:messageId filePath:@"文件路径"];
-
-
-输入参数介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - messageId
-     - long
-     - 消息数据库id
-   * - filePath
-     - NSString
-     - 文件路径
 
 
 相关回调
