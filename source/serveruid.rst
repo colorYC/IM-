@@ -89,7 +89,7 @@ ServerUid 获取
      - 查询是否成功, 成功但不一定所有查询 userId 都有 serverUid
    * - serverUids
      - NSDictionary<NSString*, NSString*>
-     - 查询结果
+     - 查询结果，键值对为 username:serverUid
 
 
 获取群组 ServerUid

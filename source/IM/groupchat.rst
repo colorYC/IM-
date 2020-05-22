@@ -511,7 +511,7 @@ JCGroupData 对象包含群服务器 uid、群名称、群类型等属性，详�
 创建群组需要传入群成员对象，首先调用下面的方法构造群成员对象
 ::
 
-    //构造 JCGroupMember
+    //构造 JCGroupMember，uid, memberType 和 displayname 需要赋值
     JCGroupMember *member = [[JCGroupMember alloc] init:@"群groupId" userId:@"登录cloud平台的账号" uid:@"uid" displayName:@"群昵称" memberType:JCGroupMemberTypeMember changeState:JCGroupChangeStateAdd];
 
 
@@ -542,8 +542,7 @@ JCGroupData 对象包含群服务器 uid、群名称、群类型等属性，详�
      - JCGroupChangeState
      - 成员变化状态
 
-
-JCGroupMember 对象的详细信息请参考 API reference。
+.. note:: 调用构造方法时，uid, memberType 和 displayname 需要赋值。
 
 返回值介绍：
 
@@ -555,8 +554,9 @@ JCGroupMember 对象的详细信息请参考 API reference。
    * - instancetype
      - 返回 JCGroupItem 对象
 
+JCGroupMember 对象的详细信息请参考 API reference。
 
-然后调用下面的方法创建群组
+群成员对象构造完成后，调用下面的方法创建群组
 ::
 
     NSArray<JCGroupMember *> *memberList = [NSArray array];
@@ -578,7 +578,7 @@ JCGroupMember 对象的详细信息请参考 API reference。
      - 说明
    * - members
      - NSArray<JCGroupMember*>
-     - 成员列表，uid, memberType 和 displayname 需要赋值
+     - 成员列表
    * - groupName
      - NSString
      - 群名字
@@ -613,6 +613,99 @@ JCGroupMember 对象的详细信息请参考 API reference。
    * - group
      - JCGroupData
      - JCGroupData 对象
+
+
+离开群组
+++++++++++++++++++++++++++
+
+调用下面的方法离开群组，**群主必须转移群主后才能离开**
+::
+
+    [JCGroupWrapper leave:@"群 ServerUid" usingBlock:^(bool, int, NSObject * _Nullable) {
+        NSLog(@"离开群组");
+    }];
+
+
+输入参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - groupServerUid
+     - NSString
+     - 群 ServerUid
+   * - block
+     - GroupOperationBlock
+     - 结果函数
+
+离开群组会触发 onLeave 回调
+::
+
+
+    -(void)onLeave:(int)operationId result:(bool)result reason:(JCGroupReason)reason groupId:(NSString*)groupId;
+
+
+参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - operationId
+     - int
+     - 操作标识，由 leave 接口返回
+   * - result
+     - bool
+     - true 表示成功，false 表示失败
+   * - reason
+     - JCGroupReason
+     - 当 result 为 false 时该值有效，参见 JCGroupReason
+   * - groupId
+     - NSString
+     - 群标识
+
+
+离开群组成功后会触发 onGroupDelete 回调和 onConversationDelete 回调
+
+::
+
+
+    -(void)onGroupDelete:(JCGroupData*)group;
+
+
+参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - group
+     - JCGroupData
+     - JCGroupData 对象
+
+::
+
+
+    -(void)onConversationDelete:(long)conversationId;
+
+参数介绍：
+
+.. list-table::
+   :header-rows: 1
+
+   * - 参数
+     - 类型
+     - 说明
+   * - conversationId
+     - long
+     - 会话数据库 id，-1 表示全部会话
 
 
 解散群组
@@ -751,7 +844,7 @@ JCGroupMember 对象的详细信息请参考 API reference。
      - 群 ServerUid
    * - memberServerUids
      - NSArray<NSString*>
-     - 成员列表
+     - 成员 ServerUid 数组
    * - block
      - GroupOperationBlock
      - 结果函数
@@ -930,7 +1023,7 @@ JCGroupMember 对象的详细信息请参考 API reference。
 
     NSDictionary<NSString*, NSObject*> *customProperties = [NSDictionary dictionary];
     [customProperties setObject:@"object" forKey:@"key"];
-    [JCGroupWrapper setGroupCustomProperties:@" 群 ServerUid" displayName:@"新的昵称" customProperties:customProperties usingBlock:^(bool, int, NSObject * _Nullable) {
+    [JCGroupWrapper setGroupCustomProperties:@" 群 ServerUid" customProperties:customProperties usingBlock:^(bool, int, NSObject * _Nullable) {
         NSLog(@"设置群自定义属性");
     }];
 
@@ -983,7 +1076,7 @@ JCGroupMember 对象的详细信息请参考 API reference。
      - 群备注名
    * - tag
      - NSDictionary<NSString*, NSObject*>
-     - 标签，内部会将该 NSDictionary 转为 json
+     - 额外信息，可以自定义
    * - block
      - GroupOperationBlock
      - 结果函数
@@ -1023,7 +1116,7 @@ JCGroupMember 对象的详细信息请参考 API reference。
 上传群头像
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-调用下面的方法上传群头像，最终是群的 customProperties 会增加 "Icon"（JCGroupIconPropertyKey 在 JCCloudConstants.h 中） 字段，存的是服务器文件链接
+调用下面的方法上传群头像，最终是群的 customProperties 属性会增加 "Icon" 字段，存的是服务器文件链接
 ::
 
     [JCGroupWrapper updateGroupIcon:@" 群 ServerUid" path:@"头像文件路径" usingBlock:^(bool, int, NSObject * _Nullable) {
@@ -1050,10 +1143,10 @@ JCGroupMember 对象的详细信息请参考 API reference。
      - 结果函数
 
 
-更新群信息
+更新群详情
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-调用下面的方法更新群信息
+调用下面的方法更新群详情
 ::
 
     [JCGroupWrapper refreshGroupInfo:@" 群 ServerUid" usingBlock:^(bool, int, NSObject * _Nullable) {
@@ -1096,33 +1189,6 @@ JCGroupMember 对象的详细信息请参考 API reference。
    * - 参数
      - 类型
      - 说明
-   * - block
-     - GroupOperationBlock
-     - 结果函数
-
-
-离开群组
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-调用下面的方法离开群组，**群主必须转移群主后才能离开**
-:
-
-    [JCGroupWrapper leave:@"群 ServerUid" usingBlock:^(bool, int, NSObject * _Nullable) {
-        NSLog(@"离开群组");
-    }];
-
-
-输入参数介绍：
-
-.. list-table::
-   :header-rows: 1
-
-   * - 参数
-     - 类型
-     - 说明
-   * - groupServerUid
-     - NSString
-     - 群 ServerUid
    * - block
      - GroupOperationBlock
      - 结果函数
@@ -1323,7 +1389,7 @@ JCGroupMember 对象的详细信息请参考 API reference。
 
 ::
 
-    NSArray<JCGroupData*> * groupData = [JCCloudDatabase queryJoinedGroups:@"创建者 serverUid"];
+    NSArray<JCGroupData*> * groupData = [JCCloudDatabase queryJoinedGroups:@"成员 serverUid"];
 
 
 输入参数介绍：
@@ -1336,7 +1402,7 @@ JCGroupMember 对象的详细信息请参考 API reference。
      - 说明
    * - memberSeverUid
      - NSString
-     - 创建者 serverUid
+     - 成员 serverUid
 
 
 返回值介绍：
